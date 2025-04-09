@@ -126,7 +126,7 @@ tasks_frame.grid_columnconfigure(0, weight=1)
 # Simulation de groupes de tâches
 tasks_data = {
     "Aujourd'hui (4)": [
-        ("🦶Footing matinal", "07:00"),
+        ("Footing matinal", "07:00"),
         ("Entretien avec M. Li", "09:00"),
         ("Préparer rapport de travail", "14:00"),
         ("Lecture du soir", "22:00")
@@ -171,6 +171,3 @@ for group_title, tasks_list in tasks_data.items():
 
 # -- Lancement de la boucle principale
 root.mainloop()
-
-
-utèfitèfcitfèffo-è_fi_rgre
