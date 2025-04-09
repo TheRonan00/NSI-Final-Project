@@ -1,4 +1,7 @@
 import customtkinter as ctk
+from PIL import Image
+
+
 
 # -- Configurer CustomTkinter pour un thème sombre et une couleur principale bleue
 ctk.set_appearance_mode("dark")
@@ -31,15 +34,33 @@ nav_frame.grid(row=0, column=0, sticky="nsw", padx=(0,10), pady=0)
 nav_frame.grid_propagate(False)
 nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
 
-# Boutons de navigation (pour l'instant sans icônes)
-nav_btn1 = ctk.CTkButton(nav_frame, text="Nav1", width=60)
-nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
+# Boutons de navigation avec icônes
+try:
+    nav_btn1 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
+                            image=ctk.CTkImage(light_image=Image.open("assets/circle-user.png"),
+                                             dark_image=Image.open("assets/circle-user.png"),
+                                             size=(20, 20)))
+    nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
 
-nav_btn2 = ctk.CTkButton(nav_frame, text="Nav2", width=60)
-nav_btn2.grid(row=1, column=0, padx=10, pady=5)
+    nav_btn2 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
+                            image=ctk.CTkImage(light_image=Image.open("assets/settings.png"),
+                                             dark_image=Image.open("assets/settings.png"), 
+                                             size=(20, 20)))
+    nav_btn2.grid(row=1, column=0, padx=10, pady=5)
 
-nav_btn3 = ctk.CTkButton(nav_frame, text="Nav3", width=60)
-nav_btn3.grid(row=2, column=0, padx=10, pady=5)
+    nav_btn3 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
+                            image=ctk.CTkImage(light_image=Image.open("assets/circle-check.png"),
+                                             dark_image=Image.open("assets/circle-check.png"),
+                                             size=(20, 20)))
+    nav_btn3.grid(row=2, column=0, padx=10, pady=5)
+
+    nav_btn4 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
+                            image=ctk.CTkImage(light_image=Image.open("assets/calendar.png"),
+                                             dark_image=Image.open("assets/calendar.png"),
+                                             size=(20, 20)))
+    nav_btn4.grid(row=3, column=0, padx=10, pady=5)
+except Exception as e:
+    print(f"Erreur lors du chargement des images: {e}")
 # ------------------------------------------------------------------------------
 # 2) SIDE VIEW (Colonne 1) : listes de rappels
 # ------------------------------------------------------------------------------
