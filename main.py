@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image
 import json
 import os
+from tkcalendar import Calendar
 from datetime import datetime
 
 # -- Configurer CustomTkinter pour un thème sombre et une couleur principale bleue
@@ -188,10 +189,6 @@ top_bar_frame.grid_columnconfigure(0, weight=1)
 # Titre
 title_label = ctk.CTkLabel(top_bar_frame, text="7 Prochains Jours", font=("Arial", 18, "bold"), fg_color="transparent")
 title_label.grid(row=0, column=0, sticky="w")
-
-# Bouton de sauvegarde manuelle
-save_btn = ctk.CTkButton(top_bar_frame, text="Sauvegarder", width=80, command=save_tasks_data)
-save_btn.grid(row=0, column=1, sticky="e", padx=(0, 10))
 
 # Icône/placeholder à droite (par ex. un bouton "filtre")
 filter_btn = ctk.CTkButton(top_bar_frame, text="Filtrer", width=80)
