@@ -24,7 +24,7 @@ def save_data():
 
 # -- Fonction pour charger les données depuis un fichier JSON
 def load_data():
-    global tasks_data, task_lists_data
+    global task_lists_data, tasks_data
     try:
         # Charger les tâches
         if os.path.exists("tasks_data.json"):
@@ -42,13 +42,7 @@ def load_data():
         else:
             # Liste par défaut si aucune sauvegarde n'existe
             task_lists_data = [
-                "⏱️Tâches Quotidiennes",
-                "💼Tâches Professionnelles",
-                "📚Tâches École",
-                "🛒Courses",
-                "Cette Semaine",
-                "✈️Plans de Voyage",
-                "Non Planifié"
+                "test"
             ]
         
         update_tasks_display()
@@ -79,12 +73,6 @@ def update_lists_display():
     for index, list_name in enumerate(task_lists_data):
         list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
         list_btn.grid(row=5+index, column=0, padx=10, pady=5, sticky="ew")
-        
-def add_new_list(list_name):
-    if list_name and list_name not in task_lists_data:
-        task_lists_data.append(list_name)
-        update_lists_display()
-        save_data()  # Sauvegarder après l'ajout
         
 def update_tasks_display():
     # Mettre à jour l'affichage
@@ -145,123 +133,13 @@ def update_tasks_display():
             time_label.grid(row=0, column=11, padx=(0, 10), sticky="e")  # Déplacé dans une nouvelle colonne
 
             row_index += 1
-
-# -- Création de la fenêtre principale
-root = ctk.CTk()
-root.title("Liste de Tâches")
-root.geometry("900x600")
-root.minsize(900, 450)
-root.iconbitmap("assets/favicon.ico")
-
-# -- Configuration de la grille principale
-root.grid_columnconfigure(0, weight=1)
-root.grid_rowconfigure(0, weight=1)
-
-# -- Conteneur principal avec un léger padding
-container = ctk.CTkFrame(root)
-container.grid(row=0, column=0, sticky="nsew")
-# On configure 3 colonnes : 0 pour la sidebar de navigation, 1 pour la side view, 2 pour la main view
-container.grid_columnconfigure(0, weight=0)  # Navigation sidebar
-container.grid_columnconfigure(1, weight=0)  # Side view (listes de rappels)
-container.grid_columnconfigure(2, weight=1)  # Main view
-container.grid_rowconfigure(0, weight=1)
-# ------------------------------------------------------------------------------
-# 1) NAVIGATION SIDEBAR (Colonne 0)
-# ------------------------------------------------------------------------------
-nav_frame = ctk.CTkFrame(container, width=60, corner_radius=0)
-nav_frame.grid(row=0, column=0, sticky="nsw", padx=(0,10), pady=0)
-nav_frame.grid_propagate(False)
-nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
-
-# Boutons de navigation avec icônes
-try:
-    nav_btn1 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/circle-user.png"),
-                                             dark_image=Image.open("assets/circle-user.png"),
-                                             size=(20, 20)))
-    nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
-
-    nav_btn2 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/settings.png"),
-                                             dark_image=Image.open("assets/settings.png"), 
-                                             size=(20, 20)))
-    nav_btn2.grid(row=1, column=0, padx=10, pady=5)
-
-    nav_btn3 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/circle-check.png"),
-                                             dark_image=Image.open("assets/circle-check.png"),
-                                             size=(20, 20)))
-    nav_btn3.grid(row=2, column=0, padx=10, pady=5)
-
-    nav_btn4 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/calendar.png"),
-                                             dark_image=Image.open("assets/calendar.png"),
-                                             size=(20, 20)))
-    nav_btn4.grid(row=3, column=0, padx=10, pady=5)
-except Exception as e:
-    print(f"Erreur lors du chargement des images: {e}")
-# ------------------------------------------------------------------------------
-# 2) SIDE VIEW (Colonne 1) : listes de rappels
-# ------------------------------------------------------------------------------
-sideview_frame = ctk.CTkFrame(container, width=220)
-sideview_frame.grid(row=0, column=1, sticky="nsw", pady=10)
-sideview_frame.grid_propagate(False)
-sideview_frame.grid_rowconfigure(99, weight=1)  # Laisse de la place en bas
-
-# -- Section "rapide" : Today, Next 7 Days, Inbox
-lbl_today = ctk.CTkButton(sideview_frame, text="Aujourd'hui (10)", fg_color="transparent", anchor="w")
-lbl_today.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
-
-lbl_next_7_days = ctk.CTkButton(sideview_frame, text="7 Prochains Jours (94)", fg_color="transparent", anchor="w")
-lbl_next_7_days.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-
-lbl_inbox = ctk.CTkButton(sideview_frame, text="Boîte de réception (1)", fg_color="transparent", anchor="w")
-lbl_inbox.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
-
-# -- Petite séparation
-sep1 = ctk.CTkLabel(sideview_frame, text="—" * 18, text_color="gray", anchor="w")
-sep1.grid(row=3, column=0, padx=5, pady=(5, 5), sticky="ew")
-
-# -- Section "Lists"
-lbl_lists_title = ctk.CTkLabel(sideview_frame, text="Listes", font=("Arial", 14, "bold"))
-lbl_lists_title.grid(row=4, column=0, padx=10, pady=(5, 5), sticky="w")
-
-# Bouton pour ajouter une nouvelle liste
-add_list_btn = ctk.CTkButton(sideview_frame, text="+ Nouvelle Liste", command=show_add_list_popup,
-                            fg_color="transparent", anchor="w")
-add_list_btn.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
-
-# Initialisation de task_lists_data (sera mis à jour par load_data)
-task_lists_data = []
-
-# Charger les données au démarrage
-load_data()
-
-# ------------------------------------------------------------------------------
-# 3) MAIN VIEW (Colonne 2)
-# ------------------------------------------------------------------------------
-main_frame = ctk.CTkFrame(container)
-main_frame.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
-main_frame.grid_columnconfigure(0, weight=1)
-main_frame.grid_rowconfigure(2, weight=1)  # la liste des tâches doit s'étendre
-
-# -- Barre supérieure (titre + icône tri/filtre + etc.)
-top_bar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-top_bar_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
-top_bar_frame.grid_columnconfigure(0, weight=1)
-
-# Titre
-title_label = ctk.CTkLabel(top_bar_frame, text="7 Prochains Jours", font=("Arial", 18, "bold"), fg_color="transparent")
-title_label.grid(row=0, column=0, sticky="w")
-
-# Icône/placeholder à droite (par ex. un bouton "filtre")
-filter_btn = ctk.CTkButton(top_bar_frame, text="Filtrer", width=80)
-filter_btn.grid(row=0, column=2, sticky="e")
-
-# -- Bouton "Add Task"
-add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=lambda: show_add_task_popup())
-add_task_btn.grid(row=1, column=0, sticky="ew", padx=10, pady=20)
-
+            
+def add_new_list(list_name):
+    if list_name and list_name not in task_lists_data:
+        task_lists_data.append(list_name)
+        update_lists_display()
+        save_data()  # Sauvegarder après l'ajout
+            
 def show_add_list_popup():
     # Créer une nouvelle fenêtre popup
     popup = ctk.CTkToplevel()
@@ -280,8 +158,10 @@ def show_add_list_popup():
     
     def create_list():
         list_name = list_entry.get()
-        if list_name:
-            add_new_list(list_name)
+        if list_name and list_name not in task_lists_data:
+            task_lists_data.append(list_name)
+            update_lists_display()
+            save_data()  # Sauvegarder après l'ajout
             popup.destroy()
     
     # Boutons Annuler/Créer
@@ -293,7 +173,7 @@ def show_add_list_popup():
     
     create_btn = ctk.CTkButton(buttons_frame, text="Créer", command=create_list)
     create_btn.pack(side="left", padx=10)
-
+    
 def show_add_task_popup():
     # Créer une nouvelle fenêtre popup
     popup = ctk.CTkToplevel()
@@ -396,6 +276,119 @@ def show_add_task_popup():
     create_btn = ctk.CTkButton(buttons_frame, text="Créer", command=add_task)
     create_btn.pack(side="right", padx=(5,0))
 
+# -- Création de la fenêtre principale
+root = ctk.CTk()
+root.title("Liste de Tâches")
+root.geometry("900x600")
+root.minsize(900, 450)
+root.iconbitmap("assets/favicon.ico")
+
+# -- Configuration de la grille principale
+root.grid_columnconfigure(0, weight=1)
+root.grid_rowconfigure(0, weight=1)
+
+# -- Conteneur principal avec un léger padding
+container = ctk.CTkFrame(root)
+container.grid(row=0, column=0, sticky="nsew")
+# On configure 3 colonnes : 0 pour la sidebar de navigation, 1 pour la side view, 2 pour la main view
+container.grid_columnconfigure(0, weight=0)  # Navigation sidebar
+container.grid_columnconfigure(1, weight=0)  # Side view (listes de rappels)
+container.grid_columnconfigure(2, weight=1)  # Main view
+container.grid_rowconfigure(0, weight=1)
+# ------------------------------------------------------------------------------
+# 1) NAVIGATION SIDEBAR (Colonne 0)
+# ------------------------------------------------------------------------------
+nav_frame = ctk.CTkFrame(container, width=60, corner_radius=0)
+nav_frame.grid(row=0, column=0, sticky="nsw", padx=(0,10), pady=0)
+nav_frame.grid_propagate(False)
+nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
+
+# Boutons de navigation avec icônes
+try:
+    nav_btn1 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+                            image=ctk.CTkImage(light_image=Image.open("assets/circle-user.png"),
+                                             dark_image=Image.open("assets/circle-user.png"),
+                                             size=(20, 20)))
+    nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
+
+    nav_btn2 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+                            image=ctk.CTkImage(light_image=Image.open("assets/settings.png"),
+                                             dark_image=Image.open("assets/settings.png"), 
+                                             size=(20, 20)))
+    nav_btn2.grid(row=1, column=0, padx=10, pady=5)
+
+    nav_btn3 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+                            image=ctk.CTkImage(light_image=Image.open("assets/circle-check.png"),
+                                             dark_image=Image.open("assets/circle-check.png"),
+                                             size=(20, 20)))
+    nav_btn3.grid(row=2, column=0, padx=10, pady=5)
+
+    nav_btn4 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+                            image=ctk.CTkImage(light_image=Image.open("assets/calendar.png"),
+                                             dark_image=Image.open("assets/calendar.png"),
+                                             size=(20, 20)))
+    nav_btn4.grid(row=3, column=0, padx=10, pady=5)
+except Exception as e:
+    print(f"Erreur lors du chargement des images: {e}")
+# ------------------------------------------------------------------------------
+# 2) SIDE VIEW (Colonne 1) : listes de rappels
+# ------------------------------------------------------------------------------
+sideview_frame = ctk.CTkFrame(container, width=220)
+sideview_frame.grid(row=0, column=1, sticky="nsw", pady=10)
+sideview_frame.grid_propagate(False)
+sideview_frame.grid_rowconfigure(99, weight=1)  # Laisse de la place en bas
+
+# -- Section "rapide" : Today, Next 7 Days, Inbox
+lbl_today = ctk.CTkButton(sideview_frame, text="Aujourd'hui (10)", fg_color="transparent", anchor="w")
+lbl_today.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
+
+lbl_next_7_days = ctk.CTkButton(sideview_frame, text="7 Prochains Jours (94)", fg_color="transparent", anchor="w")
+lbl_next_7_days.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+
+lbl_inbox = ctk.CTkButton(sideview_frame, text="Boîte de réception (1)", fg_color="transparent", anchor="w")
+lbl_inbox.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+
+# -- Petite séparation
+sep1 = ctk.CTkLabel(sideview_frame, text="—" * 18, text_color="gray", anchor="w")
+sep1.grid(row=3, column=0, padx=5, pady=(5, 5), sticky="ew")
+
+# -- Section "Lists"
+lbl_lists_title = ctk.CTkLabel(sideview_frame, text="Listes", font=("Arial", 14, "bold"))
+lbl_lists_title.grid(row=4, column=0, padx=10, pady=(5, 5), sticky="w")
+
+# Bouton pour ajouter une nouvelle liste
+add_list_btn = ctk.CTkButton(sideview_frame, text="+ Nouvelle Liste", command=show_add_list_popup,
+                            fg_color="transparent", anchor="w")
+add_list_btn.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
+
+# Initialisation de task_lists_data
+task_lists_data = []
+
+# ------------------------------------------------------------------------------
+# 3) MAIN VIEW (Colonne 2)
+# ------------------------------------------------------------------------------
+main_frame = ctk.CTkFrame(container)
+main_frame.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
+main_frame.grid_columnconfigure(0, weight=1)
+main_frame.grid_rowconfigure(2, weight=1)  # la liste des tâches doit s'étendre
+
+# -- Barre supérieure (titre + icône tri/filtre + etc.)
+top_bar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+top_bar_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
+top_bar_frame.grid_columnconfigure(0, weight=1)
+
+# Titre
+title_label = ctk.CTkLabel(top_bar_frame, text="7 Prochains Jours", font=("Arial", 18, "bold"), fg_color="transparent")
+title_label.grid(row=0, column=0, sticky="w")
+
+# Icône/placeholder à droite (par ex. un bouton "filtre")
+filter_btn = ctk.CTkButton(top_bar_frame, text="Filtrer", width=80)
+filter_btn.grid(row=0, column=2, sticky="e")
+
+# -- Bouton "Add Task"
+add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=show_add_task_popup)
+add_task_btn.grid(row=1, column=0, sticky="ew", padx=10, pady=20)
+
 # -- Cadre pour la liste des tâches
 tasks_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
 tasks_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
@@ -403,6 +396,9 @@ tasks_frame.grid_columnconfigure(0, weight=1)
 
 # Initialisation des données de tâches
 tasks_data = {}
+
+# Charger les données après la création de tous les widgets
+load_data()
 
 # Lier l'événement de clic à la fonction globale
 root.bind_all("<Button-1>", handle_focus_out)
