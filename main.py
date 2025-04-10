@@ -1,12 +1,36 @@
 import customtkinter as ctk
 from PIL import Image
-
-
+import json
+import os
 from datetime import datetime
 
 # -- Configurer CustomTkinter pour un thème sombre et une couleur principale bleue
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
+
+# -- Fonction pour sauvegarder les données dans un fichier JSON
+def save_tasks_data():
+    try:
+        with open("tasks_data.json", "w", encoding="utf-8") as file:
+            json.dump(tasks_data, file, ensure_ascii=False, indent=4)
+        print("Données sauvegardées avec succès")
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde: {e}")
+
+# -- Fonction pour charger les données depuis un fichier JSON
+def load_tasks_data():
+    global tasks_data
+    try:
+        if os.path.exists("tasks_data.json"):
+            with open("tasks_data.json", "r", encoding="utf-8") as file:
+                tasks_data = json.load(file)
+            print("Données chargées avec succès")
+            update_tasks_display()
+        else:
+            print("Aucun fichier de sauvegarde trouvé")
+    except Exception as e:
+        print(f"Erreur lors du chargement: {e}")
+        tasks_data = {}
 
 # -- Fonction globale pour gérer la perte de focus des inputs
 def handle_focus_out(event):
@@ -165,9 +189,13 @@ top_bar_frame.grid_columnconfigure(0, weight=1)
 title_label = ctk.CTkLabel(top_bar_frame, text="7 Prochains Jours", font=("Arial", 18, "bold"), fg_color="transparent")
 title_label.grid(row=0, column=0, sticky="w")
 
+# Bouton de sauvegarde manuelle
+save_btn = ctk.CTkButton(top_bar_frame, text="Sauvegarder", width=80, command=save_tasks_data)
+save_btn.grid(row=0, column=1, sticky="e", padx=(0, 10))
+
 # Icône/placeholder à droite (par ex. un bouton "filtre")
 filter_btn = ctk.CTkButton(top_bar_frame, text="Filtrer", width=80)
-filter_btn.grid(row=0, column=1, sticky="e")
+filter_btn.grid(row=0, column=2, sticky="e")
 
 # -- Bouton "Add Task"
 add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=lambda: show_add_task_popup())
@@ -263,6 +291,9 @@ def show_add_task_popup():
                 
             update_tasks_display()
             
+            # Sauvegarder les données après l'ajout d'une tâche
+            save_tasks_data()
+            
             popup.destroy()
     
     # Boutons Annuler/Créer
@@ -280,8 +311,11 @@ tasks_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
 tasks_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
 tasks_frame.grid_columnconfigure(0, weight=1)
 
-# Simulation de groupes de tâches
+# Initialisation des données de tâches
 tasks_data = {}
+
+# Charger les données au démarrage
+load_tasks_data()
 
 update_tasks_display()
 
@@ -289,4 +323,5 @@ update_tasks_display()
 root.bind_all("<Button-1>", handle_focus_out)
 
 # -- Lancement de la boucle principale
+root.protocol("WM_DELETE_WINDOW", lambda: (save_tasks_data(), root.destroy()))
 root.mainloop()
