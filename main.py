@@ -42,7 +42,15 @@ def load_data():
         else:
             # Liste par défaut si aucune sauvegarde n'existe
             task_lists_data = [
-                "test"
+                "📥 Boîte de réception",
+                "📅 Aujourd'hui",
+                "📆 7 Prochains Jours",
+                "⏱️ Tâches Quotidiennes",
+                "💼 Tâches Professionnelles",
+                "📚 Tâches École",
+                "🛒 Courses",
+                "✈️ Plans de Voyage",
+                "📝 Non Planifié"
             ]
         
         update_tasks_display()
@@ -50,7 +58,11 @@ def load_data():
     except Exception as e:
         print(f"Erreur lors du chargement: {e}")
         tasks_data = {}
-        task_lists_data = []
+        task_lists_data = [                
+            "📥 Boîte de réception",
+            "📅 Aujourd'hui",
+            "📆 7 Prochains Jours",
+        ]
 
 # -- Fonction globale pour gérer la perte de focus des inputs
 def handle_focus_out(event):
@@ -66,14 +78,41 @@ def handle_focus_out(event):
 def update_lists_display():
     # Supprimer les anciens boutons de liste
     for widget in sideview_frame.winfo_children():
-        if isinstance(widget, ctk.CTkButton) and widget not in [lbl_today, lbl_next_7_days, lbl_inbox]:
+        if isinstance(widget, ctk.CTkButton) and widget not in [add_list_btn]:
             widget.destroy()
     
-    # Recréer les boutons de liste
-    for index, list_name in enumerate(task_lists_data):
+    # Listes par défaut (3 premières listes)
+    default_lists = task_lists_data[:3]
+    custom_lists = task_lists_data[3:]
+    
+    # Afficher les listes par défaut
+    for index, list_name in enumerate(default_lists):
         list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
-        list_btn.grid(row=5+index, column=0, padx=10, pady=5, sticky="ew")
-        
+        list_btn.grid(row=index, column=0, padx=10, pady=5, sticky="ew")
+    
+    current_row = len(default_lists)
+    
+    # Ajouter le séparateur et le titre "Mes listes"
+    separator_frame = ctk.CTkFrame(sideview_frame, fg_color="transparent")
+    separator_frame.grid(row=current_row, column=0, sticky="ew", pady=10)
+    separator_frame.grid_columnconfigure(1, weight=1)
+    
+    # Titre "Mes listes"
+    mes_listes_label = ctk.CTkLabel(separator_frame, text="Mes listes", font=("Arial", 12, "bold"))
+    mes_listes_label.grid(row=0, column=0, sticky="w", padx=10)
+    
+    # Bouton + pour ajouter une nouvelle liste
+    add_btn = ctk.CTkButton(separator_frame, text="+", width=20, height=20, 
+                           command=show_add_list_popup)
+    add_btn.grid(row=0, column=2, sticky="w", padx=10)
+    
+    current_row += 1
+    
+    # Afficher les listes personnalisées
+    for index, list_name in enumerate(custom_lists):
+        list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
+        list_btn.grid(row=current_row + index, column=0, padx=10, pady=5, sticky="ew")
+
 def update_tasks_display():
     # Mettre à jour l'affichage
     for widget in tasks_frame.winfo_children():
@@ -338,28 +377,14 @@ sideview_frame.grid(row=0, column=1, sticky="nsw", pady=10)
 sideview_frame.grid_propagate(False)
 sideview_frame.grid_rowconfigure(99, weight=1)  # Laisse de la place en bas
 
-# -- Section "rapide" : Today, Next 7 Days, Inbox
-lbl_today = ctk.CTkButton(sideview_frame, text="Aujourd'hui (10)", fg_color="transparent", anchor="w")
-lbl_today.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
-
-lbl_next_7_days = ctk.CTkButton(sideview_frame, text="7 Prochains Jours (94)", fg_color="transparent", anchor="w")
-lbl_next_7_days.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-
-lbl_inbox = ctk.CTkButton(sideview_frame, text="Boîte de réception (1)", fg_color="transparent", anchor="w")
-lbl_inbox.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
-
-# -- Petite séparation
-sep1 = ctk.CTkLabel(sideview_frame, text="—" * 18, text_color="gray", anchor="w")
-sep1.grid(row=3, column=0, padx=5, pady=(5, 5), sticky="ew")
-
 # -- Section "Lists"
 lbl_lists_title = ctk.CTkLabel(sideview_frame, text="Listes", font=("Arial", 14, "bold"))
-lbl_lists_title.grid(row=4, column=0, padx=10, pady=(5, 5), sticky="w")
+lbl_lists_title.grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
 
 # Bouton pour ajouter une nouvelle liste
 add_list_btn = ctk.CTkButton(sideview_frame, text="+ Nouvelle Liste", command=show_add_list_popup,
                             fg_color="transparent", anchor="w")
-add_list_btn.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
+add_list_btn.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
 # Initialisation de task_lists_data
 task_lists_data = []
