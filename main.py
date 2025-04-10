@@ -10,28 +10,53 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 # -- Fonction pour sauvegarder les données dans un fichier JSON
-def save_tasks_data():
+def save_data():
     try:
+        # Sauvegarder les tâches
         with open("tasks_data.json", "w", encoding="utf-8") as file:
             json.dump(tasks_data, file, ensure_ascii=False, indent=4)
+        # Sauvegarder les listes
+        with open("lists_data.json", "w", encoding="utf-8") as file:
+            json.dump(task_lists_data, file, ensure_ascii=False, indent=4)
         print("Données sauvegardées avec succès")
     except Exception as e:
         print(f"Erreur lors de la sauvegarde: {e}")
 
 # -- Fonction pour charger les données depuis un fichier JSON
-def load_tasks_data():
-    global tasks_data
+def load_data():
+    global tasks_data, task_lists_data
     try:
+        # Charger les tâches
         if os.path.exists("tasks_data.json"):
             with open("tasks_data.json", "r", encoding="utf-8") as file:
                 tasks_data = json.load(file)
-            print("Données chargées avec succès")
-            update_tasks_display()
+            print("Tâches chargées avec succès")
         else:
-            print("Aucun fichier de sauvegarde trouvé")
+            tasks_data = {}
+
+        # Charger les listes
+        if os.path.exists("lists_data.json"):
+            with open("lists_data.json", "r", encoding="utf-8") as file:
+                task_lists_data = json.load(file)
+            print("Listes chargées avec succès")
+        else:
+            # Liste par défaut si aucune sauvegarde n'existe
+            task_lists_data = [
+                "⏱️Tâches Quotidiennes",
+                "💼Tâches Professionnelles",
+                "📚Tâches École",
+                "🛒Courses",
+                "Cette Semaine",
+                "✈️Plans de Voyage",
+                "Non Planifié"
+            ]
+        
+        update_tasks_display()
+        update_lists_display()
     except Exception as e:
         print(f"Erreur lors du chargement: {e}")
         tasks_data = {}
+        task_lists_data = []
 
 # -- Fonction globale pour gérer la perte de focus des inputs
 def handle_focus_out(event):
@@ -43,6 +68,23 @@ def handle_focus_out(event):
         # Si on clique ailleurs que sur un input, on retire le focus
         if isinstance(focused_widget, ctk.CTkEntry) and event.widget != focused_widget:
             focused_widget.master.focus()  # Donner le focus au parent du widget
+            
+def update_lists_display():
+    # Supprimer les anciens boutons de liste
+    for widget in sideview_frame.winfo_children():
+        if isinstance(widget, ctk.CTkButton) and widget not in [lbl_today, lbl_next_7_days, lbl_inbox]:
+            widget.destroy()
+    
+    # Recréer les boutons de liste
+    for index, list_name in enumerate(task_lists_data):
+        list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
+        list_btn.grid(row=5+index, column=0, padx=10, pady=5, sticky="ew")
+        
+def add_new_list(list_name):
+    if list_name and list_name not in task_lists_data:
+        task_lists_data.append(list_name)
+        update_lists_display()
+        save_data()  # Sauvegarder après l'ajout
         
 def update_tasks_display():
     # Mettre à jour l'affichage
@@ -97,10 +139,10 @@ def update_tasks_display():
                     display_date = f"{jour} {mois_str}"
 
             date_label = ctk.CTkLabel(task_row_frame, text=display_date, text_color="gray")
-            date_label.grid(row=0, column=2, padx=(0, 35), sticky="e")
+            date_label.grid(row=0, column=10, padx=(0, 5), sticky="e")  # Augmenté le padding droit
 
-            time_label = ctk.CTkLabel(task_row_frame, text=task_time, text_color="gray")
-            time_label.grid(row=0, column=2, padx=(0, 10), sticky="e")
+            time_label = ctk.CTkLabel(task_row_frame, text=task_time, text_color="gray") 
+            time_label.grid(row=0, column=11, padx=(0, 10), sticky="e")  # Déplacé dans une nouvelle colonne
 
             row_index += 1
 
@@ -184,23 +226,16 @@ sep1.grid(row=3, column=0, padx=5, pady=(5, 5), sticky="ew")
 lbl_lists_title = ctk.CTkLabel(sideview_frame, text="Listes", font=("Arial", 14, "bold"))
 lbl_lists_title.grid(row=4, column=0, padx=10, pady=(5, 5), sticky="w")
 
-task_lists_data = [
-    "⏱️Tâches Quotidiennes",
-    "💼Tâches Professionnelles",
-    "📚Tâches École",
-    "🛒Courses",
-    "Cette Semaine",
-    "✈️Plans de Voyage",
-    "Non Planifié"
-]
+# Bouton pour ajouter une nouvelle liste
+add_list_btn = ctk.CTkButton(sideview_frame, text="+ Nouvelle Liste", command=show_add_list_popup,
+                            fg_color="transparent", anchor="w")
+add_list_btn.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
 
-for index, list_name in enumerate(task_lists_data):
-    list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
-    list_btn.grid(row=5+index, column=0, padx=10, pady=5, sticky="ew")
+# Initialisation de task_lists_data (sera mis à jour par load_data)
+task_lists_data = []
 
-# Laisser de la place en bas si besoin
-sep2 = ctk.CTkLabel(sideview_frame, text="")
-sep2.grid(row=5+len(task_lists_data), column=0, pady=10)
+# Charger les données au démarrage
+load_data()
 
 # ------------------------------------------------------------------------------
 # 3) MAIN VIEW (Colonne 2)
@@ -226,6 +261,38 @@ filter_btn.grid(row=0, column=2, sticky="e")
 # -- Bouton "Add Task"
 add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=lambda: show_add_task_popup())
 add_task_btn.grid(row=1, column=0, sticky="ew", padx=10, pady=20)
+
+def show_add_list_popup():
+    # Créer une nouvelle fenêtre popup
+    popup = ctk.CTkToplevel()
+    popup.title("Nouvelle Liste")
+    popup.geometry("300x200")
+    
+    # Centrer la popup
+    popup.geometry(f"+{int(popup.winfo_screenwidth()/2 - 150)}+{int(popup.winfo_screenheight()/2 - 100)}")
+    
+    # Ajouter les widgets dans la popup
+    title_label = ctk.CTkLabel(popup, text="Créer une nouvelle liste", font=("Arial", 16, "bold"))
+    title_label.pack(pady=20)
+    
+    list_entry = ctk.CTkEntry(popup, placeholder_text="Nom de la liste", width=200)
+    list_entry.pack(pady=10)
+    
+    def create_list():
+        list_name = list_entry.get()
+        if list_name:
+            add_new_list(list_name)
+            popup.destroy()
+    
+    # Boutons Annuler/Créer
+    buttons_frame = ctk.CTkFrame(popup, fg_color="transparent")
+    buttons_frame.pack(pady=20)
+    
+    cancel_btn = ctk.CTkButton(buttons_frame, text="Annuler", command=popup.destroy)
+    cancel_btn.pack(side="left", padx=10)
+    
+    create_btn = ctk.CTkButton(buttons_frame, text="Créer", command=create_list)
+    create_btn.pack(side="left", padx=10)
 
 def show_add_task_popup():
     # Créer une nouvelle fenêtre popup
@@ -315,7 +382,7 @@ def show_add_task_popup():
             update_tasks_display()
             
             # Sauvegarder les données après l'ajout d'une tâche
-            save_tasks_data()
+            save_data()
             
             popup.destroy()
     
@@ -337,14 +404,9 @@ tasks_frame.grid_columnconfigure(0, weight=1)
 # Initialisation des données de tâches
 tasks_data = {}
 
-# Charger les données au démarrage
-load_tasks_data()
-
-update_tasks_display()
-
 # Lier l'événement de clic à la fonction globale
 root.bind_all("<Button-1>", handle_focus_out)
 
 # -- Lancement de la boucle principale
-root.protocol("WM_DELETE_WINDOW", lambda: (save_tasks_data(), root.destroy()))
+root.protocol("WM_DELETE_WINDOW", lambda: (save_data(), root.destroy()))
 root.mainloop()
