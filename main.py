@@ -244,10 +244,7 @@ def show_add_task_popup():
         
         # Centrer la fenêtre du calendrier
         cal_window.geometry(f"+{int(popup.winfo_x() + popup.winfo_width())}+{int(popup.winfo_y())}")
-        
-        # Importer tkcalendar seulement quand nécessaire
-        from tkcalendar import Calendar
-        
+
         # Créer le calendrier
         cal = Calendar(cal_window, selectmode='day', date_pattern='yyyy-mm-dd')
         cal.pack(expand=True, fill="both", padx=10, pady=10)
