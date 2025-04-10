@@ -56,8 +56,8 @@ def update_tasks_display():
         group_label.grid(row=row_index, column=0, sticky="w", pady=(10, 5))
         row_index += 1
 
-        # Pour chaque tâche, on crée une ligne : [Checkbox] [Titre] (Heure à droite)
-        for task_title, task_time in tasks_list:
+        # Pour chaque tâche, on crée une ligne : [Checkbox] [Titre] (Date) (Heure à droite)
+        for task_title, task_date, task_time in tasks_list:
             task_row_frame = ctk.CTkFrame(tasks_frame)
             task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
             task_row_frame.grid_columnconfigure(0, weight=0)  # checkbox
@@ -70,8 +70,37 @@ def update_tasks_display():
             task_label = ctk.CTkLabel(task_row_frame, text=task_title)
             task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))  # Décalé de 25px pour laisser place à la checkbox
 
+            # Formatage de la date
+            today = datetime.now().date()
+            task_datetime = datetime.strptime(task_date, "%Y-%m-%d").date()
+            
+            # Calcul de la différence en jours
+            delta = (task_datetime - today).days
+            
+            if delta == 0:
+                display_date = "Aujourd'hui"
+            elif delta == 1:
+                display_date = "Demain"
+            elif delta == -1:
+                display_date = "Hier"
+            else:
+                # Conversion de la date en format français
+                mois = ["janvier", "février", "mars", "avril", "mai", "juin", 
+                       "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+                jour = task_datetime.day
+                mois_str = mois[task_datetime.month - 1]
+                
+                # Ajouter l'année si différente de l'année actuelle
+                if task_datetime.year != today.year:
+                    display_date = f"{jour} {mois_str} {task_datetime.year}"
+                else:
+                    display_date = f"{jour} {mois_str}"
+
+            date_label = ctk.CTkLabel(task_row_frame, text=display_date, text_color="gray")
+            date_label.grid(row=0, column=2, padx=(0, 35), sticky="e")
+
             time_label = ctk.CTkLabel(task_row_frame, text=task_time, text_color="gray")
-            time_label.grid(row=0, column=2, padx=10, sticky="e")
+            time_label.grid(row=0, column=2, padx=(0, 10), sticky="e")
 
             row_index += 1
 
@@ -165,9 +194,9 @@ task_lists_data = [
     "Non Planifié"
 ]
 
-for i, list_name in enumerate(task_lists_data):
+for index, list_name in enumerate(task_lists_data):
     list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
-    list_btn.grid(row=5+i, column=0, padx=10, pady=5, sticky="ew")
+    list_btn.grid(row=5+index, column=0, padx=10, pady=5, sticky="ew")
 
 # Laisser de la place en bas si besoin
 sep2 = ctk.CTkLabel(sideview_frame, text="")
@@ -281,7 +310,7 @@ def show_add_task_popup():
                 task_date = now.strftime("%Y-%m-%d")
                 
             # Ajouter la tâche à la liste sélectionnée
-            tasks_data[selected_list] = tasks_data.get(selected_list, []) + [(task_name, task_time)]
+            tasks_data[selected_list] = tasks_data.get(selected_list, []) + [(task_name, task_date, task_time)]
                 
             update_tasks_display()
             
