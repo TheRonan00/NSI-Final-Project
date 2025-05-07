@@ -12,12 +12,14 @@ ctk.set_default_color_theme("blue")
 # -- Fonction pour sauvegarder les données dans un fichier JSON
 def save_data():
     try:
-        # Sauvegarder les tâches
-        with open("tasks_data.json", "w", encoding="utf-8") as file:
-            json.dump(tasks_data, file, ensure_ascii=False, indent=4)
-        # Sauvegarder les listes
-        with open("lists_data.json", "w", encoding="utf-8") as file:
-            json.dump(task_lists_data, file, ensure_ascii=False, indent=4)
+        # Sauvegarder les données dans user_data.json
+        with open("user_data.json", "r+", encoding="utf-8") as file:
+            data = json.load(file)
+            data["users"]["default"]["tasks"] = tasks_data
+            data["users"]["default"]["lists"] = task_lists_data
+            file.seek(0)
+            json.dump(data, file, ensure_ascii=False, indent=4)
+            file.truncate()
         print("Données sauvegardées avec succès")
     except Exception as e:
         print(f"Erreur lors de la sauvegarde: {e}")
@@ -26,25 +28,18 @@ def save_data():
 def load_data():
     global task_lists_data, tasks_data
     try:
-        # Charger les tâches
-        if os.path.exists("tasks_data.json"):
-            with open("tasks_data.json", "r", encoding="utf-8") as file:
-                tasks_data = json.load(file)
-            print("Tâches chargées avec succès")
+        # Charger les données depuis user_data.json
+        if os.path.exists("user_data.json"):
+            with open("user_data.json", "r", encoding="utf-8") as file:
+                data = json.load(file)
+                tasks_data = data["users"]["default"]["tasks"]
+                task_lists_data = data["users"]["default"]["lists"]
+            print("Données chargées avec succès")
         else:
+            # Données par défaut si le fichier n'existe pas
             tasks_data = {}
-
-        # Charger les listes
-        if os.path.exists("lists_data.json"):
-            with open("lists_data.json", "r", encoding="utf-8") as file:
-                task_lists_data = json.load(file)
-            print("Listes chargées avec succès")
-        else:
-            # Liste par défaut si aucune sauvegarde n'existe
-            task_lists_data = [
-                "test"
-            ]
-        
+            task_lists_data = ["test"]
+            
         update_tasks_display()
         update_lists_display()
     except Exception as e:
@@ -87,7 +82,7 @@ def update_tasks_display():
         row_index += 1
 
         # Pour chaque tâche, on crée une ligne : [Checkbox] [Titre] (Date) (Heure à droite)
-        for task_title, task_date, task_time in tasks_list:
+        for task in tasks_list:
             task_row_frame = ctk.CTkFrame(tasks_frame)
             task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
             task_row_frame.grid_columnconfigure(0, weight=0)  # checkbox
@@ -97,12 +92,12 @@ def update_tasks_display():
             checkbox = ctk.CTkCheckBox(task_row_frame, text="")
             checkbox.grid(row=0, column=0, sticky="w")
 
-            task_label = ctk.CTkLabel(task_row_frame, text=task_title)
+            task_label = ctk.CTkLabel(task_row_frame, text=task["title"])
             task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))  # Décalé de 25px pour laisser place à la checkbox
 
             # Formatage de la date
             today = datetime.now().date()
-            task_datetime = datetime.strptime(task_date, "%Y-%m-%d").date()
+            task_datetime = datetime.strptime(task["date"], "%Y-%m-%d").date()
             
             # Calcul de la différence en jours
             delta = (task_datetime - today).days
@@ -129,7 +124,7 @@ def update_tasks_display():
             date_label = ctk.CTkLabel(task_row_frame, text=display_date, text_color="gray")
             date_label.grid(row=0, column=10, padx=(0, 5), sticky="e")  # Augmenté le padding droit
 
-            time_label = ctk.CTkLabel(task_row_frame, text=task_time, text_color="gray") 
+            time_label = ctk.CTkLabel(task_row_frame, text=task["time"], text_color="gray") 
             time_label.grid(row=0, column=11, padx=(0, 10), sticky="e")  # Déplacé dans une nouvelle colonne
 
             row_index += 1
@@ -256,8 +251,17 @@ def show_add_task_popup():
                 now = datetime.now()
                 task_date = now.strftime("%Y-%m-%d")
                 
+            # Créer la nouvelle tâche avec la nouvelle structure
+            new_task = {
+                "title": task_name,
+                "date": task_date,
+                "time": task_time
+            }
+                
             # Ajouter la tâche à la liste sélectionnée
-            tasks_data[selected_list] = tasks_data.get(selected_list, []) + [(task_name, task_date, task_time)]
+            if selected_list not in tasks_data:
+                tasks_data[selected_list] = []
+            tasks_data[selected_list].append(new_task)
                 
             update_tasks_display()
             

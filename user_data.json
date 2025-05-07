@@ -1,0 +1,47 @@
+{
+    "users": {
+        "default": {
+            "lists": [
+                "test"
+            ],
+            "tasks": {
+                "⏱️Tâches Quotidiennes": [
+                    {
+                        "title": "test",
+                        "date": "2025-04-16",
+                        "time": "12:00"
+                    }
+                ],
+                "📚Tâches École": [
+                    {
+                        "title": "waifuuuuu",
+                        "date": "2025-04-16",
+                        "time": "05:00"
+                    }
+                ],
+                "test": [
+                    {
+                        "title": "jueje",
+                        "date": "2025-04-14",
+                        "time": "11:00"
+                    },
+                    {
+                        "title": "tester",
+                        "date": "2025-04-12",
+                        "time": "09:00"
+                    },
+                    {
+                        "title": ",hjgyfc fyj ",
+                        "date": "2025-04-21",
+                        "time": "09:00"
+                    },
+                    {
+                        "title": "testeeeeeeeeeeeeeeeeeeeeeeeee",
+                        "date": "2025-05-14",
+                        "time": "14:00"
+                    }
+                ]
+            }
+        }
+    }
+}
