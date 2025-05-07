@@ -47,7 +47,7 @@ def load_data():
         else:
             # Liste par défaut si aucune sauvegarde n'existe
             task_lists_data = [
-                "📥 Boîte de réception",
+                "📥 Toutes",
                 "📅 Aujourd'hui",
                 "📆 7 Prochains Jours",
                 "⏱️ Tâches Quotidiennes",
@@ -64,7 +64,7 @@ def load_data():
         print(f"Erreur lors du chargement: {e}")
         tasks_data = {}
         task_lists_data = [                
-            "📥 Boîte de réception",
+            "📥 Toutes",
             "📅 Aujourd'hui",
             "📆 7 Prochains Jours",
         ]
@@ -80,7 +80,11 @@ def handle_focus_out(event):
         if isinstance(focused_widget, ctk.CTkEntry) and event.widget != focused_widget:
             focused_widget.master.focus()  # Donner le focus au parent du widget
             
+# Ajouter la variable globale pour la liste sélectionnée
+selected_list = "📥 Toutes"
+
 def update_lists_display():
+    global selected_list
     # Supprimer les anciens boutons de liste
     for widget in sideview_frame.winfo_children():
         if isinstance(widget, ctk.CTkButton) and widget not in [add_list_btn]:
@@ -92,7 +96,14 @@ def update_lists_display():
     
     # Afficher les listes par défaut
     for index, list_name in enumerate(default_lists):
-        list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
+        list_btn = ctk.CTkButton(
+            sideview_frame, 
+            text=list_name, 
+            fg_color="transparent" if list_name != selected_list else "cyan",
+            hover_color="cyan",
+            anchor="w",
+            command=lambda name=list_name: select_list(name)
+        )
         list_btn.grid(row=index, column=0, padx=10, pady=5, sticky="ew")
     
     current_row = len(default_lists)
@@ -115,8 +126,22 @@ def update_lists_display():
     
     # Afficher les listes personnalisées
     for index, list_name in enumerate(custom_lists):
-        list_btn = ctk.CTkButton(sideview_frame, text=list_name, fg_color="transparent", anchor="w")
+        list_btn = ctk.CTkButton(
+            sideview_frame,
+            text=list_name,
+            fg_color="transparent" if list_name != selected_list else "cyan",
+            hover_color="cyan",
+            anchor="w",
+            command=lambda name=list_name: select_list(name)
+        )
         list_btn.grid(row=current_row + index, column=0, padx=10, pady=5, sticky="ew")
+
+def select_list(list_name):
+    global selected_list, title_label
+    selected_list = list_name
+    update_lists_display()  # Mettre à jour l'affichage des listes pour refléter la sélection
+    title_label.configure(text=list_name)  # Mettre à jour le titre
+    update_tasks_display()  # Mettre à jour l'affichage des tâches
 
 def update_tasks_display():
     # Mettre à jour l'affichage
@@ -124,60 +149,72 @@ def update_tasks_display():
         widget.destroy()
         
     row_index = 0
-    for group_title, tasks_list in tasks_data.items():
-        # Titre du groupe (ex: "Today (4)")
-        group_label = ctk.CTkLabel(tasks_frame, text=group_title, font=("Arial", 14, "bold"))
-        group_label.grid(row=row_index, column=0, sticky="w", pady=(10, 5))
-        row_index += 1
-
-        # Pour chaque tâche, on crée une ligne : [Checkbox] [Titre] (Date) (Heure à droite)
-        for task in tasks_list:
-            task_row_frame = ctk.CTkFrame(tasks_frame)
-            task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
-            task_row_frame.grid_columnconfigure(0, weight=0)  # checkbox
-            task_row_frame.grid_columnconfigure(1, weight=1)  # label de la tâche
-            task_row_frame.grid_columnconfigure(2, weight=0)  # horaire
-
-            checkbox = ctk.CTkCheckBox(task_row_frame, text="")
-            checkbox.grid(row=0, column=0, sticky="w")
-
-            task_label = ctk.CTkLabel(task_row_frame, text=task["title"])
-            task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))  # Décalé de 25px pour laisser place à la checkbox
-
-            # Formatage de la date
-            today = datetime.now().date()
-            task_datetime = datetime.strptime(task["date"], "%Y-%m-%d").date()
-            
-            # Calcul de la différence en jours
-            delta = (task_datetime - today).days
-            
-            if delta == 0:
-                display_date = "Aujourd'hui"
-            elif delta == 1:
-                display_date = "Demain"
-            elif delta == -1:
-                display_date = "Hier"
-            else:
-                # Conversion de la date en format français
-                mois = ["janvier", "février", "mars", "avril", "mai", "juin", 
-                       "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
-                jour = task_datetime.day
-                mois_str = mois[task_datetime.month - 1]
+    
+    # Si "Toutes" est sélectionné, afficher toutes les tâches
+    if selected_list == "📥 Toutes":
+        for list_name, tasks_list in tasks_data.items():
+            if tasks_list:  # Ne pas afficher les listes vides
+                # Titre du groupe
+                group_label = ctk.CTkLabel(tasks_frame, text=list_name, font=("Arial", 14, "bold"))
+                group_label.grid(row=row_index, column=0, sticky="w", pady=(10, 5))
+                row_index += 1
                 
-                # Ajouter l'année si différente de l'année actuelle
-                if task_datetime.year != today.year:
-                    display_date = f"{jour} {mois_str} {task_datetime.year}"
-                else:
-                    display_date = f"{jour} {mois_str}"
+                # Afficher les tâches de cette liste
+                for task in tasks_list:
+                    row_index = display_task(task, row_index)
+    else:
+        # Afficher uniquement les tâches de la liste sélectionnée
+        tasks_list = tasks_data.get(selected_list, [])
+        for task in tasks_list:
+            row_index = display_task(task, row_index)
 
-            date_label = ctk.CTkLabel(task_row_frame, text=display_date, text_color="gray")
-            date_label.grid(row=0, column=10, padx=(0, 5), sticky="e")  # Augmenté le padding droit
+def display_task(task, row_index):
+    task_row_frame = ctk.CTkFrame(tasks_frame)
+    task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
+    task_row_frame.grid_columnconfigure(0, weight=0)  # checkbox
+    task_row_frame.grid_columnconfigure(1, weight=1)  # label de la tâche
+    task_row_frame.grid_columnconfigure(2, weight=0)  # horaire
 
-            time_label = ctk.CTkLabel(task_row_frame, text=task["time"], text_color="gray") 
-            time_label.grid(row=0, column=11, padx=(0, 10), sticky="e")  # Déplacé dans une nouvelle colonne
+    checkbox = ctk.CTkCheckBox(task_row_frame, text="")
+    checkbox.grid(row=0, column=0, sticky="w")
 
-            row_index += 1
-            
+    task_label = ctk.CTkLabel(task_row_frame, text=task["title"])
+    task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))
+
+    # Formatage de la date
+    today = datetime.now().date()
+    task_datetime = datetime.strptime(task["date"], "%Y-%m-%d").date()
+    
+    # Calcul de la différence en jours
+    delta = (task_datetime - today).days
+    
+    if delta == 0:
+        display_date = "Aujourd'hui"
+    elif delta == 1:
+        display_date = "Demain"
+    elif delta == -1:
+        display_date = "Hier"
+    else:
+        # Conversion de la date en format français
+        mois = ["janvier", "février", "mars", "avril", "mai", "juin", 
+               "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+        jour = task_datetime.day
+        mois_str = mois[task_datetime.month - 1]
+        
+        # Ajouter l'année si différente de l'année actuelle
+        if task_datetime.year != today.year:
+            display_date = f"{jour} {mois_str} {task_datetime.year}"
+        else:
+            display_date = f"{jour} {mois_str}"
+
+    date_label = ctk.CTkLabel(task_row_frame, text=display_date, text_color="gray")
+    date_label.grid(row=0, column=10, padx=(0, 5), sticky="e")
+
+    time_label = ctk.CTkLabel(task_row_frame, text=task["time"], text_color="gray") 
+    time_label.grid(row=0, column=11, padx=(0, 10), sticky="e")
+
+    return row_index + 1
+
 def add_new_list(list_name):
     if list_name and list_name not in task_lists_data:
         task_lists_data.append(list_name)
