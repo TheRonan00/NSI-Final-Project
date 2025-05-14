@@ -10,50 +10,34 @@
                 "📚 Tâches École",
                 "🛒 Courses",
                 "✈️ Plans de Voyage",
-                "📝 Non Planifié"
+                "📝 Non Planifié",
+                "Test de liste"
             ],
             "tasks": {
-                "⏱️Tâches Quotidiennes": [
-                    {
-                        "title": "test",
-                        "date": "2025-04-16",
-                        "time": "12:00"
-                    }
-                ],
-                "📚Tâches École": [
-                    {
-                        "title": "waifuuuuu",
-                        "date": "2025-04-16",
-                        "time": "05:00"
-                    }
-                ],
-                "test": [
-                    {
-                        "title": "jueje",
-                        "date": "2025-04-14",
-                        "time": "11:00"
-                    },
-                    {
-                        "title": "tester",
-                        "date": "2025-04-12",
-                        "time": "09:00"
-                    },
-                    {
-                        "title": ",hjgyfc fyj ",
-                        "date": "2025-04-21",
-                        "time": "09:00"
-                    },
-                    {
-                        "title": "testeeeeeeeeeeeeeeeeeeeeeeeee",
-                        "date": "2025-05-14",
-                        "time": "14:00"
-                    }
-                ],
                 "⏱️ Tâches Quotidiennes": [
                     {
                         "title": "tache de test",
                         "date": "2025-05-15",
                         "time": "16:00"
+                    },
+                    {
+                        "title": "nouvelle tache",
+                        "date": "2025-05-14",
+                        "time": "13:00"
+                    }
+                ],
+                "🛒 Courses": [
+                    {
+                        "title": "Bim",
+                        "date": "2025-05-14",
+                        "time": "09:00"
+                    }
+                ],
+                "Test de liste": [
+                    {
+                        "title": "test de test de liste",
+                        "date": "2025-05-14",
+                        "time": "12:00"
                     }
                 ]
             }

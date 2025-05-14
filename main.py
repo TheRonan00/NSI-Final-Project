@@ -38,13 +38,6 @@ def load_data():
         else:
             # Données par défaut si le fichier n'existe pas
             tasks_data = {}
-
-        # Charger les listes
-        if os.path.exists("lists_data.json"):
-            with open("lists_data.json", "r", encoding="utf-8") as file:
-                task_lists_data = json.load(file)
-            print("Listes chargées avec succès")
-        else:
             # Liste par défaut si aucune sauvegarde n'existe
             task_lists_data = [
                 "📥 Toutes",
@@ -99,8 +92,8 @@ def update_lists_display():
         list_btn = ctk.CTkButton(
             sideview_frame, 
             text=list_name, 
-            fg_color="transparent" if list_name != selected_list else "cyan",
-            hover_color="cyan",
+            fg_color="transparent" if list_name != selected_list else "blue",
+            hover_color="blue",
             anchor="w",
             command=lambda name=list_name: select_list(name)
         )
@@ -129,8 +122,8 @@ def update_lists_display():
         list_btn = ctk.CTkButton(
             sideview_frame,
             text=list_name,
-            fg_color="transparent" if list_name != selected_list else "cyan",
-            hover_color="cyan",
+            fg_color="transparent" if list_name != selected_list else "blue",
+            hover_color="blue",
             anchor="w",
             command=lambda name=list_name: select_list(name)
         )
