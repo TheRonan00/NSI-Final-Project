@@ -1,6 +1,13 @@
 {
     "users": {
         "default": {
+            "profile": {
+                "username": "Présentation NSI",
+                "profile_picture": "assets/default_profile.png",
+                "level": 2,
+                "xp": 20,
+                "coins": 15
+            },
             "lists": [
                 "📥 Toutes",
                 "📅 Aujourd'hui",
@@ -10,25 +17,12 @@
                 "📚 Tâches École",
                 "🛒 Courses",
                 "✈️ Plans de Voyage",
-                "📝 Non Planifié",
-                "Test de liste"
+                "📝 Non Planifié"
             ],
             "tasks": {
                 "⏱️ Tâches Quotidiennes": [
                     {
-                        "title": "tache de test",
-                        "date": "2025-05-15",
-                        "time": "16:00",
-                        "checked": true
-                    },
-                    {
-                        "title": "nouvelle tache",
-                        "date": "2025-05-14",
-                        "time": "13:00",
-                        "checked": false
-                    },
-                    {
-                        "title": "une tache quotidien bro",
+                        "title": "Passer l'aspirateur dans ma chambre",
                         "date": "2025-05-21",
                         "time": "09:00",
                         "checked": true
@@ -36,26 +30,24 @@
                 ],
                 "🛒 Courses": [
                     {
-                        "title": "Bim",
+                        "title": "Acheter 1 boite de jambon",
                         "date": "2025-05-14",
                         "time": "09:00",
-                        "checked": false
-                    }
-                ],
-                "Test de liste": [
+                        "checked": true
+                    },
                     {
-                        "title": "test de test de liste",
+                        "title": "Acheter 3 boites de lardons",
                         "date": "2025-05-14",
-                        "time": "12:00",
-                        "checked": false
+                        "time": "09:00",
+                        "checked": true
                     }
                 ],
                 "✈️ Plans de Voyage": [
                     {
-                        "title": "shamballa",
+                        "title": "Voyager en Thaïlande",
                         "date": "2025-05-23",
                         "time": "12:00",
-                        "checked": false
+                        "checked": true
                     }
                 ]
             }

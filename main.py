@@ -3,6 +3,9 @@ import json
 import os
 from tkcalendar import Calendar
 from datetime import datetime, timedelta
+import tkinter as tk
+import tkinter.messagebox as tkmb
+from PIL import Image
 
 # -- Configurer CustomTkinter pour un thème sombre et une couleur principale bleue
 ctk.set_appearance_mode("dark")
@@ -16,6 +19,10 @@ def save_data():
             data = json.load(file)
             data["users"]["default"]["tasks"] = tasks_data
             data["users"]["default"]["lists"] = task_lists_data
+            # Sauvegarder les informations du profil
+            data["users"]["default"]["profile"]["level"] = level
+            data["users"]["default"]["profile"]["xp"] = current_xp
+            data["users"]["default"]["profile"]["coins"] = coins
             file.seek(0)
             json.dump(data, file, ensure_ascii=False, indent=4)
             file.truncate()
@@ -25,7 +32,7 @@ def save_data():
 
 # -- Fonction pour charger les données depuis un fichier JSON
 def load_data():
-    global task_lists_data, tasks_data
+    global task_lists_data, tasks_data, level, current_xp, coins
     try:
         # Charger les données depuis user_data.json
         if os.path.exists("user_data.json"):
@@ -33,6 +40,12 @@ def load_data():
                 data = json.load(file)
                 tasks_data = data["users"]["default"]["tasks"]
                 task_lists_data = data["users"]["default"]["lists"]
+                # Charger les informations du profil
+                profile_data = data["users"]["default"]["profile"]
+                level = profile_data.get("level", 1)
+                current_xp = profile_data.get("xp", 0)
+                coins = profile_data.get("coins", 0)
+                xp_max = int(round(100 * (1.1 ** (level - 1))))  # Recalculer xp_max basé sur le niveau
             print("Données chargées avec succès")
         else:
             # Données par défaut si le fichier n'existe pas
@@ -49,6 +62,10 @@ def load_data():
                 "✈️ Plans de Voyage",
                 "📝 Non Planifié"
             ]
+            # Valeurs par défaut pour le profil
+            level = 1
+            current_xp = 0
+            coins = 0
         
         update_tasks_display()
         update_lists_display()
@@ -60,17 +77,9 @@ def load_data():
             "📅 Aujourd'hui",
             "📆 7 Prochains Jours",
         ]
-
-# -- Fonction globale pour gérer la perte de focus des inputs
-def handle_focus_out(event):
-    # Récupérer le widget qui a actuellement le focus
-    focused_widget = root.focus_get()
-    
-    # Vérifier si on a cliqué sur un widget valide
-    if not isinstance(event.widget, str):
-        # Si on clique ailleurs que sur un input, on retire le focus
-        if isinstance(focused_widget, ctk.CTkEntry) and event.widget != focused_widget:
-            focused_widget.master.focus()  # Donner le focus au parent du widget
+        level = 1
+        current_xp = 0
+        coins = 0
             
 # Ajouter la variable globale pour la liste sélectionnée
 selected_list = "📥 Toutes"
@@ -92,8 +101,8 @@ def update_lists_display():
         list_btn = ctk.CTkButton(
             sideview_frame, 
             text=list_name, 
-            fg_color="blue" if is_selected else "transparent",
-            hover_color="blue",
+            fg_color="#1F6AA5" if is_selected else "transparent",
+            hover_color="#1F6AA5",
             anchor="w",
             command=lambda name=list_name: select_list(name)
         )
@@ -124,8 +133,8 @@ def update_lists_display():
         list_btn = ctk.CTkButton(
             sideview_frame,
             text=list_name,
-            fg_color="blue" if is_selected else "transparent",
-            hover_color="blue",
+            fg_color="#1F6AA5" if is_selected else "transparent",
+            hover_color="#1F6AA5",
             anchor="w",
             command=lambda name=list_name: select_list(name)
         )
@@ -249,7 +258,6 @@ def level_up():
     try:
         ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !", icon="info")
     except Exception:
-        import tkinter.messagebox as tkmb
         tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !")
     show_xp_bar()
 
@@ -265,14 +273,12 @@ def lose_xp_for_task():
             try:
                 ctk.CTkMessagebox(title="Perte de niveau", message=f"Tu redescends au niveau {level}...\nTu perds 15 🪙 coins.", icon="warning")
             except Exception:
-                import tkinter.messagebox as tkmb
                 tkmb.showwarning("Perte de niveau", f"Tu redescends au niveau {level}...\nTu perds 15 🪙 coins.")
         else:
             current_xp = 0
     show_xp_bar()
 
 def display_task(task, row_index):
-    import tkinter as tk
     task_row_frame = ctk.CTkFrame(tasks_frame)
     task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
     task_row_frame.grid_columnconfigure(0, weight=1)  # checkbox + label
@@ -614,6 +620,90 @@ def show_shop():
         )
         buy_btn.pack(side="right", padx=10, pady=5)
 
+# === SYSTÈME DE PROFIL ===
+def show_profile():
+    # Charger les données du profil depuis le fichier JSON
+    try:
+        with open("user_data.json", "r", encoding="utf-8") as file:
+            data = json.load(file)
+            profile_data = data["users"]["default"]["profile"]
+            username = profile_data["username"]
+            profile_picture = profile_data["profile_picture"]
+    except Exception:
+        username = "Utilisateur"
+        profile_picture = "assets/default_profile.png"
+
+    # Créer une nouvelle fenêtre pour le profil
+    profile_window = ctk.CTkToplevel()
+    profile_window.title("Profil Utilisateur")
+    profile_window.geometry("400x500")
+    
+    # Centrer la fenêtre
+    profile_window.geometry(f"+{int(profile_window.winfo_screenwidth()/2 - 200)}+{int(profile_window.winfo_screenheight()/2 - 250)}")
+    
+    # Frame principale
+    main_frame = ctk.CTkFrame(profile_window)
+    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+    
+    # Photo de profil
+    try:
+        profile_image = ctk.CTkImage(
+            light_image=Image.open(profile_picture),
+            dark_image=Image.open(profile_picture),
+            size=(150, 150)
+        )
+        profile_image_label = ctk.CTkLabel(main_frame, image=profile_image, text="")
+        profile_image_label.pack(pady=20)
+    except Exception:
+        # Si l'image n'existe pas, afficher un emoji comme fallback
+        profile_image_label = ctk.CTkLabel(main_frame, text="👤", font=("Arial", 80))
+        profile_image_label.pack(pady=20)
+    
+    # Nom d'utilisateur
+    username_label = ctk.CTkLabel(main_frame, text=username, font=("Arial", 24, "bold"))
+    username_label.pack(pady=10)
+    
+    # Frame pour les statistiques
+    stats_frame = ctk.CTkFrame(main_frame)
+    stats_frame.pack(fill="x", padx=20, pady=20)
+    
+    # Niveau
+    level_frame = ctk.CTkFrame(stats_frame, fg_color="transparent")
+    level_frame.pack(fill="x", pady=5, padx=10)
+    level_label = ctk.CTkLabel(level_frame, text="Niveau", font=("Arial", 16))
+    level_label.pack(side="left")
+    level_value = ctk.CTkLabel(level_frame, text=str(level), font=("Arial", 16, "bold"))
+    level_value.pack(side="right")
+    
+    # XP
+    xp_frame = ctk.CTkFrame(stats_frame, fg_color="transparent")
+    xp_frame.pack(fill="x", pady=5, padx=10)
+    xp_label = ctk.CTkLabel(xp_frame, text="XP", font=("Arial", 16))
+    xp_label.pack(side="left")
+    xp_value = ctk.CTkLabel(xp_frame, text=f"{current_xp}/{xp_max}", font=("Arial", 16, "bold"))
+    xp_value.pack(side="right")
+    
+    # Barre de progression XP
+    xp_progress = ctk.CTkProgressBar(stats_frame)
+    xp_progress.set(current_xp / xp_max)
+    xp_progress.pack(fill="x", pady=10, padx=10)
+    
+    # Coins
+    coins_frame = ctk.CTkFrame(stats_frame, fg_color="transparent")
+    coins_frame.pack(fill="x", pady=5, padx=10)
+    coins_label = ctk.CTkLabel(coins_frame, text="Coins", font=("Arial", 16))
+    coins_label.pack(side="left")
+    coins_value = ctk.CTkLabel(coins_frame, text=f"{coins} 🪙", font=("Arial", 16, "bold"))
+    coins_value.pack(side="right")
+    
+    # Bouton pour modifier le profil
+    edit_profile_btn = ctk.CTkButton(
+        main_frame,
+        text="Modifier le profil",
+        command=lambda: tkmb.showinfo("Information", "Cette fonctionnalité sera disponible prochainement !")
+    )
+    edit_profile_btn.pack(pady=20)
+
 # -- Création de la fenêtre principale
 root = ctk.CTk()
 root.title("Liste de Tâches")
@@ -642,13 +732,13 @@ nav_frame.grid_propagate(False)
 nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
 
 # Boutons de navigation avec icônes
-nav_btn1 = ctk.CTkButton(nav_frame, text="🏠", width=40, height=40, fg_color="#FAEBD7")
+nav_btn1 = ctk.CTkButton(nav_frame, text="🏠", width=40, height=40, fg_color="#1F6AA5")
 nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
 
-nav_btn2 = ctk.CTkButton(nav_frame, text="🛒", width=40, height=40, fg_color="#FAEBD7", command=show_shop)
+nav_btn2 = ctk.CTkButton(nav_frame, text="🛒", width=40, height=40, fg_color="#1F6AA5", command=show_shop)
 nav_btn2.grid(row=1, column=0, padx=10, pady=5)
 
-nav_btn3 = ctk.CTkButton(nav_frame, text="👤", width=40, height=40, fg_color="#FAEBD7")
+nav_btn3 = ctk.CTkButton(nav_frame, text="👤", width=40, height=40, fg_color="#1F6AA5", command=show_profile)
 nav_btn3.grid(row=2, column=0, padx=10, pady=5)
 # ------------------------------------------------------------------------------
 # 2) SIDE VIEW (Colonne 1) : listes de rappels
@@ -705,9 +795,6 @@ load_data()
 
 # Afficher la barre d'XP dès le départ
 show_xp_bar()
-
-# Lier l'événement de clic à la fonction globale
-root.bind_all("<Button-1>", handle_focus_out)
 
 # -- Lancement de la boucle principale
 root.protocol("WM_DELETE_WINDOW", lambda: (save_data(), root.destroy()))
