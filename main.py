@@ -211,14 +211,27 @@ xp_max = 100
 level = 1
 coins = 0  # Ajout du système de coins
 
+# -- BARRE D'XP EN BAS DE LA FENÊTRE PRINCIPALE --
+xp_bar_frame = None  # Frame pour la barre d'XP
+
 def show_xp_bar():
-    global xp_label, xp_progress
-    # Met à jour le texte et la barre de progression dans la frame XP
+    global xp_label, xp_progress, xp_bar_frame
+    # Détruit l'ancienne frame si elle existe
     try:
-        xp_label.configure(text=f"Niveau {level} | {coins} 🪙 | XP : {current_xp}/{xp_max}")
-        xp_progress.set(current_xp / xp_max)
+        if xp_bar_frame is not None:
+            xp_bar_frame.destroy()
     except Exception:
         pass
+    # Crée la nouvelle frame en bas du main_frame
+    xp_bar_frame = ctk.CTkFrame(main_frame)
+    xp_bar_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
+    # Label XP
+    xp_label = ctk.CTkLabel(xp_bar_frame, text=f"Niveau {level} | {coins} 🪙 | XP : {current_xp}/{xp_max}")
+    xp_label.pack(side="left", padx=10)
+    # Barre de progression XP
+    xp_progress = ctk.CTkProgressBar(xp_bar_frame, width=250)
+    xp_progress.set(current_xp / xp_max)
+    xp_progress.pack(side="left", padx=10, pady=8)
 
 def gain_xp_for_task():
     global current_xp, xp_max, level
@@ -664,17 +677,6 @@ top_bar_frame.grid_columnconfigure(1, weight=0)
 # Titre
 title_label = ctk.CTkLabel(top_bar_frame, text=selected_list, font=("Arial", 18, "bold"), fg_color="transparent")
 title_label.grid(row=0, column=0, sticky="w")
-
-# -- BARRE D'XP DANS LA TOP BAR --
-xp_container_frame = ctk.CTkFrame(top_bar_frame, fg_color="transparent")
-xp_container_frame.grid(row=0, column=1, sticky="e", padx=(10,0))
-
-xp_label = ctk.CTkLabel(xp_container_frame, text=f"Niveau {level} | 🪙 {coins} | XP : {current_xp}/{xp_max}")
-xp_label.pack(side="left", padx=(0,5))
-
-xp_progress = ctk.CTkProgressBar(xp_container_frame, width=180)
-xp_progress.set(current_xp / xp_max)
-xp_progress.pack(side="left", padx=(0,10), pady=8)
 
 # -- Bouton "Add Task"
 add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=show_add_task_popup)
