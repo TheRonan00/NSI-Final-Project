@@ -2,7 +2,7 @@ import customtkinter as ctk
 import json
 import os
 from tkcalendar import Calendar
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # -- Configurer CustomTkinter pour un thème sombre et une couleur principale bleue
 ctk.set_appearance_mode("dark")
@@ -88,10 +88,11 @@ def update_lists_display():
     
     # Afficher les listes par défaut
     for index, list_name in enumerate(default_lists):
+        is_selected = (list_name == selected_list)
         list_btn = ctk.CTkButton(
             sideview_frame, 
             text=list_name, 
-            fg_color="transparent" if list_name != selected_list else "blue",
+            fg_color="blue" if is_selected else "transparent",
             hover_color="blue",
             anchor="w",
             command=lambda name=list_name: select_list(name)
@@ -103,25 +104,27 @@ def update_lists_display():
     # Ajouter le séparateur et le titre "Mes listes"
     separator_frame = ctk.CTkFrame(sideview_frame, fg_color="transparent")
     separator_frame.grid(row=current_row, column=0, sticky="ew", pady=10)
+    separator_frame.grid_columnconfigure(0, weight=0)
     separator_frame.grid_columnconfigure(1, weight=1)
+    separator_frame.grid_columnconfigure(2, weight=0)
     
     # Titre "Mes listes"
     mes_listes_label = ctk.CTkLabel(separator_frame, text="Mes listes", font=("", 14, "bold"))
     mes_listes_label.grid(row=0, column=0, sticky="w", padx=10)
     
     # Bouton + pour ajouter une nouvelle liste
-    add_btn = ctk.CTkButton(separator_frame, text="+", width=20, height=20, 
-                           command=show_add_list_popup)
-    add_btn.grid(row=0, column=2, sticky="w", padx=10)
+    add_btn = ctk.CTkButton(separator_frame, text="+", width=20, height=20, command=show_add_list_popup)
+    add_btn.grid(row=0, column=2, sticky="ew", padx=10)
     
     current_row += 1
     
     # Afficher les listes personnalisées
     for index, list_name in enumerate(custom_lists):
+        is_selected = (list_name == selected_list)
         list_btn = ctk.CTkButton(
             sideview_frame,
             text=list_name,
-            fg_color="transparent" if list_name != selected_list else "blue",
+            fg_color="blue" if is_selected else "transparent",
             hover_color="blue",
             anchor="w",
             command=lambda name=list_name: select_list(name)
@@ -175,7 +178,7 @@ def update_tasks_display():
     elif selected_list == "📆 7 Prochains Jours":
         today = datetime.now().date()
         # Calculer la date de fin (7 jours après aujourd'hui)
-        end_date = today + datetime.timedelta(days=7)
+        end_date = today + timedelta(days=7)
         
         # Parcourir toutes les listes pour trouver les tâches des 7 prochains jours
         for list_name, tasks_list in tasks_data.items():
@@ -238,15 +241,26 @@ def gain_xp_for_task():
     show_xp_bar()
 
 def level_up():
-    global level
+    global level, xp_max
     level += 1
+    xp_max = int(round(xp_max * 1.1))
     try:
         ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉", icon="info")
     except Exception:
         import tkinter.messagebox as tkmb
         tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {level} 🎉")
 
-# === FIN BARRE D'XP ===
+def lose_xp_for_task():
+    global current_xp, xp_max, level
+    current_xp -= xp_per_task
+    if current_xp < 0:
+        if level > 1:
+            level -= 1
+            xp_max = int(round(xp_max / 1.1))
+            current_xp = xp_max + current_xp  # current_xp est négatif
+        else:
+            current_xp = 0
+    show_xp_bar()
 
 def display_task(task, row_index):
     import tkinter as tk
@@ -272,10 +286,11 @@ def display_task(task, row_index):
         if checked_var.get():
             # Texte barré et opacité réduite, police par défaut
             task_label.configure(font=("", 0, "overstrike"), text_color=("#888888"))
+            gain_xp_for_task()
         else:
             # Texte normal, police par défaut
             task_label.configure(font=("", 0, "normal"), text_color=("#FFFFFF"))
-        gain_xp_for_task()
+            lose_xp_for_task()
     checkbox.configure(command=on_task_checked)
     # --- FIN XP ---
 
