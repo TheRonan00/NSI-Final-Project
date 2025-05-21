@@ -280,7 +280,7 @@ def display_task(task, row_index):
     task_row_frame.grid_columnconfigure(2, weight=0)  # heure
 
     # Variable de contrôle pour la checkbox
-    checked_var = tk.BooleanVar(value=False)
+    checked_var = tk.BooleanVar(value=task.get("checked", False))
 
     # Checkbox
     checkbox = ctk.CTkCheckBox(task_row_frame, text="", variable=checked_var)
@@ -289,6 +289,10 @@ def display_task(task, row_index):
     # Label de la tâche (dans la même colonne que la checkbox, mais avec un padding)
     task_label = ctk.CTkLabel(task_row_frame, text=task["title"])
     task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))
+
+    # Appliquer le style initial si la tâche est déjà cochée
+    if checked_var.get():
+        task_label.configure(font=("", 0, "overstrike"), text_color=("#888888"))
 
     # --- CALLBACK pour la barre d'XP et le style barré ---
     def on_task_checked():
@@ -300,6 +304,11 @@ def display_task(task, row_index):
             # Texte normal, police par défaut
             task_label.configure(font=("", 0, "normal"), text_color=("#FFFFFF"))
             lose_xp_for_task()
+        
+        # Mettre à jour l'état de la tâche dans les données
+        task["checked"] = checked_var.get()
+        save_data()  # Sauvegarder les données après chaque changement d'état
+
     checkbox.configure(command=on_task_checked)
     # --- FIN XP ---
 
@@ -469,7 +478,8 @@ def show_add_task_popup():
             new_task = {
                 "title": task_name,
                 "date": task_date,
-                "time": task_time
+                "time": task_time,
+                "checked": False
             }
                 
             # Ajouter la tâche à la liste sélectionnée
