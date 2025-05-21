@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from PIL import Image
 import json
 import os
 from tkcalendar import Calendar
@@ -107,7 +106,7 @@ def update_lists_display():
     separator_frame.grid_columnconfigure(1, weight=1)
     
     # Titre "Mes listes"
-    mes_listes_label = ctk.CTkLabel(separator_frame, text="Mes listes", font=("Arial", 12, "bold"))
+    mes_listes_label = ctk.CTkLabel(separator_frame, text="Mes listes", font=("", 14, "bold"))
     mes_listes_label.grid(row=0, column=0, sticky="w", padx=10)
     
     # Bouton + pour ajouter une nouvelle liste
@@ -250,25 +249,35 @@ def level_up():
 # === FIN BARRE D'XP ===
 
 def display_task(task, row_index):
+    import tkinter as tk
     task_row_frame = ctk.CTkFrame(tasks_frame)
     task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
-    task_row_frame.grid_columnconfigure(0, weight=0)  # checkbox
-    task_row_frame.grid_columnconfigure(1, weight=1)  # label de la tâche
-    task_row_frame.grid_columnconfigure(2, weight=0)  # horaire
+    task_row_frame.grid_columnconfigure(0, weight=1)  # checkbox + label
+    task_row_frame.grid_columnconfigure(1, weight=0)  # date
+    task_row_frame.grid_columnconfigure(2, weight=0)  # heure
 
-    checkbox = ctk.CTkCheckBox(task_row_frame, text="")
+    # Variable de contrôle pour la checkbox
+    checked_var = tk.BooleanVar(value=False)
+
+    # Checkbox
+    checkbox = ctk.CTkCheckBox(task_row_frame, text="", variable=checked_var)
     checkbox.grid(row=0, column=0, sticky="w")
 
-    # --- CALLBACK pour la barre d'XP ---
-    def on_task_checked():
-        gain_xp_for_task()
-        # Ici, tu peux aussi gérer la suppression ou validation de la tâche
-
-    checkbox.configure(command=on_task_checked)
-    # --- FIN XP ---
-
+    # Label de la tâche (dans la même colonne que la checkbox, mais avec un padding)
     task_label = ctk.CTkLabel(task_row_frame, text=task["title"])
     task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))
+
+    # --- CALLBACK pour la barre d'XP et le style barré ---
+    def on_task_checked():
+        if checked_var.get():
+            # Texte barré et opacité réduite, police par défaut
+            task_label.configure(font=("", 0, "overstrike"), text_color=("#888888"))
+        else:
+            # Texte normal, police par défaut
+            task_label.configure(font=("", 0, "normal"), text_color=("#FFFFFF"))
+        gain_xp_for_task()
+    checkbox.configure(command=on_task_checked)
+    # --- FIN XP ---
 
     # Formatage de la date
     today = datetime.now().date()
@@ -297,10 +306,10 @@ def display_task(task, row_index):
             display_date = f"{jour} {mois_str}"
 
     date_label = ctk.CTkLabel(task_row_frame, text=display_date, text_color="gray")
-    date_label.grid(row=0, column=10, padx=(0, 5), sticky="e")
+    date_label.grid(row=0, column=1, padx=(0, 5), sticky="e")
 
     time_label = ctk.CTkLabel(task_row_frame, text=task["time"], text_color="gray") 
-    time_label.grid(row=0, column=11, padx=(0, 10), sticky="e")
+    time_label.grid(row=0, column=2, padx=(0, 10), sticky="e")
 
     return row_index + 1
 
@@ -379,7 +388,9 @@ def show_add_task_popup():
     date_label = ctk.CTkLabel(date_frame, text="Date")
     date_label.pack(anchor="w")
     
-    date_var = ctk.StringVar()
+    # Préremplir la date avec aujourd'hui
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    date_var = ctk.StringVar(value=today_str)
     date_entry = ctk.CTkEntry(date_frame, textvariable=date_var, width=250, state="readonly")
     date_entry.pack(side="left", pady=(0,10))
     
@@ -487,32 +498,14 @@ nav_frame.grid_propagate(False)
 nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
 
 # Boutons de navigation avec icônes
-try:
-    nav_btn1 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/circle-user.png"),
-                                             dark_image=Image.open("assets/circle-user.png"),
-                                             size=(20, 20)))
-    nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
+nav_btn1 = ctk.CTkButton(nav_frame, text="🏠", width=40, height=40, fg_color="#FAEBD7")
+nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
 
-    nav_btn2 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/settings.png"),
-                                             dark_image=Image.open("assets/settings.png"), 
-                                             size=(20, 20)))
-    nav_btn2.grid(row=1, column=0, padx=10, pady=5)
+nav_btn2 = ctk.CTkButton(nav_frame, text="🛒", width=40, height=40, fg_color="#FAEBD7")
+nav_btn2.grid(row=1, column=0, padx=10, pady=5)
 
-    nav_btn3 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/circle-check.png"),
-                                             dark_image=Image.open("assets/circle-check.png"),
-                                             size=(20, 20)))
-    nav_btn3.grid(row=2, column=0, padx=10, pady=5)
-
-    nav_btn4 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
-                            image=ctk.CTkImage(light_image=Image.open("assets/calendar.png"),
-                                             dark_image=Image.open("assets/calendar.png"),
-                                             size=(20, 20)))
-    nav_btn4.grid(row=3, column=0, padx=10, pady=5)
-except Exception as e:
-    print(f"Erreur lors du chargement des images: {e}")
+nav_btn2 = ctk.CTkButton(nav_frame, text="👤", width=40, height=40, fg_color="#FAEBD7")
+nav_btn2.grid(row=2, column=0, padx=10, pady=5)
 # ------------------------------------------------------------------------------
 # 2) SIDE VIEW (Colonne 1) : listes de rappels
 # ------------------------------------------------------------------------------
@@ -549,10 +542,6 @@ top_bar_frame.grid_columnconfigure(0, weight=1)
 # Titre
 title_label = ctk.CTkLabel(top_bar_frame, text="7 Prochains Jours", font=("Arial", 18, "bold"), fg_color="transparent")
 title_label.grid(row=0, column=0, sticky="w")
-
-# Icône/placeholder à droite (par ex. un bouton "filtre")
-filter_btn = ctk.CTkButton(top_bar_frame, text="Filtrer", width=80)
-filter_btn.grid(row=0, column=2, sticky="e")
 
 # -- Bouton "Add Task"
 add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=show_add_task_popup)
