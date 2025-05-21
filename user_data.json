@@ -25,7 +25,7 @@
                         "title": "Passer l'aspirateur dans ma chambre",
                         "date": "2025-05-21",
                         "time": "09:00",
-                        "checked": true
+                        "checked": false
                     }
                 ],
                 "🛒 Courses": [
@@ -33,13 +33,13 @@
                         "title": "Acheter 1 boite de jambon",
                         "date": "2025-05-14",
                         "time": "09:00",
-                        "checked": true
+                        "checked": false
                     },
                     {
                         "title": "Acheter 3 boites de lardons",
                         "date": "2025-05-14",
                         "time": "09:00",
-                        "checked": true
+                        "checked": false
                     }
                 ],
                 "✈️ Plans de Voyage": [
@@ -47,7 +47,7 @@
                         "title": "Voyager en Thaïlande",
                         "date": "2025-05-23",
                         "time": "12:00",
-                        "checked": true
+                        "checked": false
                     }
                 ]
             }
