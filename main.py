@@ -209,28 +209,16 @@ current_xp = 0
 xp_per_task = 20
 xp_max = 100
 level = 1
-xp_bar_frame = None
+coins = 0  # Ajout du système de coins
 
 def show_xp_bar():
-    global xp_bar_frame, xp_label, xp_progress
+    global xp_label, xp_progress
+    # Met à jour le texte et la barre de progression dans la frame XP
     try:
-        xp_bar_frame.destroy()
-    except:
+        xp_label.configure(text=f"Niveau {level} | {coins} 🪙 | XP : {current_xp}/{xp_max}")
+        xp_progress.set(current_xp / xp_max)
+    except Exception:
         pass
-
-    # Crée la barre en bas de la fenêtre principale (main_frame)
-    global main_frame
-    xp_bar_frame = ctk.CTkFrame(main_frame, fg_color="#222")
-    xp_bar_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
-
-    # Label XP
-    xp_label = ctk.CTkLabel(xp_bar_frame, text=f"Niveau {level} - XP : {current_xp}/{xp_max}")
-    xp_label.pack(side="left", padx=10)
-
-    # Barre de progression XP
-    xp_progress = ctk.CTkProgressBar(xp_bar_frame, width=250)
-    xp_progress.set(current_xp / xp_max)
-    xp_progress.pack(side="left", padx=10, pady=8)
 
 def gain_xp_for_task():
     global current_xp, xp_max, level
@@ -241,23 +229,31 @@ def gain_xp_for_task():
     show_xp_bar()
 
 def level_up():
-    global level, xp_max
+    global level, xp_max, coins
     level += 1
     xp_max = int(round(xp_max * 1.1))
+    coins += 15  # Ajout de 15 coins à chaque level up
     try:
-        ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉", icon="info")
+        ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !", icon="info")
     except Exception:
         import tkinter.messagebox as tkmb
-        tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {level} 🎉")
+        tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !")
+    show_xp_bar()
 
 def lose_xp_for_task():
-    global current_xp, xp_max, level
+    global current_xp, xp_max, level, coins
     current_xp -= xp_per_task
     if current_xp < 0:
         if level > 1:
             level -= 1
             xp_max = int(round(xp_max / 1.1))
             current_xp = xp_max + current_xp  # current_xp est négatif
+            coins = max(0, coins - 15)  # On retire 15 coins, sans descendre sous 0
+            try:
+                ctk.CTkMessagebox(title="Perte de niveau", message=f"Tu redescends au niveau {level}...\nTu perds 15 🪙 coins.", icon="warning")
+            except Exception:
+                import tkinter.messagebox as tkmb
+                tkmb.showwarning("Perte de niveau", f"Tu redescends au niveau {level}...\nTu perds 15 🪙 coins.")
         else:
             current_xp = 0
     show_xp_bar()
@@ -553,10 +549,22 @@ main_frame.grid_rowconfigure(2, weight=1)  # la liste des tâches doit s'étendr
 top_bar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
 top_bar_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
 top_bar_frame.grid_columnconfigure(0, weight=1)
+top_bar_frame.grid_columnconfigure(1, weight=0)
 
 # Titre
-title_label = ctk.CTkLabel(top_bar_frame, text="7 Prochains Jours", font=("Arial", 18, "bold"), fg_color="transparent")
+title_label = ctk.CTkLabel(top_bar_frame, text=selected_list, font=("Arial", 18, "bold"), fg_color="transparent")
 title_label.grid(row=0, column=0, sticky="w")
+
+# -- BARRE D'XP DANS LA TOP BAR --
+xp_container_frame = ctk.CTkFrame(top_bar_frame, fg_color="transparent")
+xp_container_frame.grid(row=0, column=1, sticky="e", padx=(10,0))
+
+xp_label = ctk.CTkLabel(xp_container_frame, text=f"Niveau {level} | 🪙 {coins} | XP : {current_xp}/{xp_max}")
+xp_label.pack(side="left", padx=(0,5))
+
+xp_progress = ctk.CTkProgressBar(xp_container_frame, width=180)
+xp_progress.set(current_xp / xp_max)
+xp_progress.pack(side="left", padx=(0,10), pady=8)
 
 # -- Bouton "Add Task"
 add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=show_add_task_popup)
