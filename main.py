@@ -161,6 +161,53 @@ def update_tasks_display():
         for task in tasks_list:
             row_index = display_task(task, row_index)
 
+# === BARRE D'XP - AJOUT ICI ===
+current_xp = 0
+xp_per_task = 20
+xp_max = 100
+level = 1
+xp_bar_frame = None
+
+def show_xp_bar():
+    global xp_bar_frame, xp_label, xp_progress
+    try:
+        xp_bar_frame.destroy()
+    except:
+        pass
+
+    # Crée la barre en bas de la fenêtre principale (main_frame)
+    global main_frame
+    xp_bar_frame = ctk.CTkFrame(main_frame, fg_color="#222")
+    xp_bar_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
+
+    # Label XP
+    xp_label = ctk.CTkLabel(xp_bar_frame, text=f"Niveau {level} - XP : {current_xp}/{xp_max}")
+    xp_label.pack(side="left", padx=10)
+
+    # Barre de progression XP
+    xp_progress = ctk.CTkProgressBar(xp_bar_frame, width=250)
+    xp_progress.set(current_xp / xp_max)
+    xp_progress.pack(side="left", padx=10, pady=8)
+
+def gain_xp_for_task():
+    global current_xp, xp_max, level
+    current_xp += xp_per_task
+    if current_xp >= xp_max:
+        current_xp -= xp_max
+        level_up()
+    show_xp_bar()
+
+def level_up():
+    global level
+    level += 1
+    try:
+        ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉", icon="info")
+    except Exception:
+        import tkinter.messagebox as tkmb
+        tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {level} 🎉")
+
+# === FIN BARRE D'XP ===
+
 def display_task(task, row_index):
     task_row_frame = ctk.CTkFrame(tasks_frame)
     task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
@@ -170,6 +217,14 @@ def display_task(task, row_index):
 
     checkbox = ctk.CTkCheckBox(task_row_frame, text="")
     checkbox.grid(row=0, column=0, sticky="w")
+
+    # --- CALLBACK pour la barre d'XP ---
+    def on_task_checked():
+        gain_xp_for_task()
+        # Ici, tu peux aussi gérer la suppression ou validation de la tâche
+
+    checkbox.configure(command=on_task_checked)
+    # --- FIN XP ---
 
     task_label = ctk.CTkLabel(task_row_frame, text=task["title"])
     task_label.grid(row=0, column=0, sticky="w", padx=(30, 0))
@@ -388,25 +443,25 @@ nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
 
 # Boutons de navigation avec icônes
 try:
-    nav_btn1 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+    nav_btn1 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
                             image=ctk.CTkImage(light_image=Image.open("assets/circle-user.png"),
                                              dark_image=Image.open("assets/circle-user.png"),
                                              size=(20, 20)))
     nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
 
-    nav_btn2 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+    nav_btn2 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
                             image=ctk.CTkImage(light_image=Image.open("assets/settings.png"),
                                              dark_image=Image.open("assets/settings.png"), 
                                              size=(20, 20)))
     nav_btn2.grid(row=1, column=0, padx=10, pady=5)
 
-    nav_btn3 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+    nav_btn3 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
                             image=ctk.CTkImage(light_image=Image.open("assets/circle-check.png"),
                                              dark_image=Image.open("assets/circle-check.png"),
                                              size=(20, 20)))
     nav_btn3.grid(row=2, column=0, padx=10, pady=5)
 
-    nav_btn4 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#808791",
+    nav_btn4 = ctk.CTkButton(nav_frame, text="", width=40, height=40, fg_color="#FAEBD7",
                             image=ctk.CTkImage(light_image=Image.open("assets/calendar.png"),
                                              dark_image=Image.open("assets/calendar.png"),
                                              size=(20, 20)))
@@ -468,6 +523,9 @@ tasks_data = {}
 
 # Charger les données après la création de tous les widgets
 load_data()
+
+# Afficher la barre d’XP dès le départ
+show_xp_bar()
 
 # Lier l'événement de clic à la fonction globale
 root.bind_all("<Button-1>", handle_focus_out)
