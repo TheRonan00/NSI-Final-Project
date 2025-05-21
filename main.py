@@ -481,6 +481,116 @@ def show_add_task_popup():
     create_btn = ctk.CTkButton(buttons_frame, text="Créer", command=add_task)
     create_btn.pack(side="right", padx=(5,0))
 
+# === SYSTÈME DE COINS ET BOUTIQUE ===
+coins = 0  # Ajout du système de coins
+
+def show_shop():
+    # Créer une nouvelle fenêtre pour la boutique
+    shop_window = ctk.CTkToplevel()
+    shop_window.title("Boutique de Récompenses")
+    shop_window.geometry("500x600")
+    
+    # Centrer la fenêtre
+    shop_window.geometry(f"+{int(shop_window.winfo_screenwidth()/2 - 250)}+{int(shop_window.winfo_screenheight()/2 - 300)}")
+    
+    # Titre de la boutique
+    title_frame = ctk.CTkFrame(shop_window, fg_color="transparent")
+    title_frame.pack(fill="x", padx=20, pady=10)
+    
+    title_label = ctk.CTkLabel(title_frame, text="Boutique de Récompenses", font=("Arial", 24, "bold"))
+    title_label.pack(side="left")
+    
+    coins_label = ctk.CTkLabel(title_frame, text=f"🪙 {coins} coins", font=("Arial", 18))
+    coins_label.pack(side="right")
+    
+    # Frame pour les articles
+    items_frame = ctk.CTkFrame(shop_window)
+    items_frame.pack(fill="both", expand=True, padx=20, pady=10)
+    
+    # Liste des articles disponibles
+    shop_items = [
+        {
+            "name": "Temps de Média",
+            "price": 100,
+            "description": "30 minutes de temps libre pour regarder des vidéos ou utiliser les réseaux sociaux",
+            "icon": "📱"
+        },
+        {
+            "name": "Temps de Repos",
+            "price": 50,
+            "description": "15 minutes de pause bien méritée",
+            "icon": "😴"
+        },
+        {
+            "name": "Gouter",
+            "price": 70,
+            "description": "Un petit plaisir sucré pour se récompenser",
+            "icon": "🍪"
+        },
+        {
+            "name": "Jeux Vidéo",
+            "price": 80,
+            "description": "20 minutes de jeu vidéo",
+            "icon": "🎮"
+        },
+        {
+            "name": "Sortie en Soirée",
+            "price": 400,
+            "description": "Une sortie entre amis le soir",
+            "icon": "🌙"
+        }
+    ]
+    
+    # Créer les articles dans la boutique
+    for item in shop_items:
+        item_frame = ctk.CTkFrame(items_frame)
+        item_frame.pack(fill="x", padx=10, pady=5)
+        
+        # Informations de l'article
+        info_frame = ctk.CTkFrame(item_frame, fg_color="transparent")
+        info_frame.pack(side="left", fill="x", expand=True, padx=10, pady=5)
+        
+        # En-tête avec icône et nom
+        header_frame = ctk.CTkFrame(info_frame, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, 5))
+        
+        icon_label = ctk.CTkLabel(header_frame, text=item["icon"], font=("Arial", 20))
+        icon_label.pack(side="left", padx=(0, 10))
+        
+        name_label = ctk.CTkLabel(header_frame, text=item["name"], font=("Arial", 16, "bold"))
+        name_label.pack(side="left")
+        
+        desc_label = ctk.CTkLabel(info_frame, text=item["description"], text_color="gray")
+        desc_label.pack(anchor="w")
+        
+        # Bouton d'achat
+        def create_buy_command(item_price, item_name, item_icon):
+            def buy_item():
+                global coins
+                if coins >= item_price:
+                    coins -= item_price
+                    coins_label.configure(text=f"🪙 {coins} coins")
+                    show_xp_bar()  # Mettre à jour l'affichage des coins
+                    ctk.CTkMessagebox(
+                        title="Achat réussi!", 
+                        message=f"Vous avez acheté {item_icon} {item_name}!\nProfitez bien de votre récompense !", 
+                        icon="check"
+                    )
+                else:
+                    ctk.CTkMessagebox(
+                        title="Erreur", 
+                        message=f"Vous n'avez pas assez de coins !\nIl vous manque {item_price - coins} coins.", 
+                        icon="cancel"
+                    )
+            return buy_item
+        
+        buy_btn = ctk.CTkButton(
+            item_frame, 
+            text=f"Acheter ({item['price']} 🪙)", 
+            command=create_buy_command(item["price"], item["name"], item["icon"])
+        )
+        buy_btn.pack(side="right", padx=10, pady=5)
+
 # -- Création de la fenêtre principale
 root = ctk.CTk()
 root.title("Liste de Tâches")
@@ -512,11 +622,11 @@ nav_frame.grid_rowconfigure(99, weight=1)  # Pour pousser les boutons en haut
 nav_btn1 = ctk.CTkButton(nav_frame, text="🏠", width=40, height=40, fg_color="#FAEBD7")
 nav_btn1.grid(row=0, column=0, padx=10, pady=(10,5))
 
-nav_btn2 = ctk.CTkButton(nav_frame, text="🛒", width=40, height=40, fg_color="#FAEBD7")
+nav_btn2 = ctk.CTkButton(nav_frame, text="🛒", width=40, height=40, fg_color="#FAEBD7", command=show_shop)
 nav_btn2.grid(row=1, column=0, padx=10, pady=5)
 
-nav_btn2 = ctk.CTkButton(nav_frame, text="👤", width=40, height=40, fg_color="#FAEBD7")
-nav_btn2.grid(row=2, column=0, padx=10, pady=5)
+nav_btn3 = ctk.CTkButton(nav_frame, text="👤", width=40, height=40, fg_color="#FAEBD7")
+nav_btn3.grid(row=2, column=0, padx=10, pady=5)
 # ------------------------------------------------------------------------------
 # 2) SIDE VIEW (Colonne 1) : listes de rappels
 # ------------------------------------------------------------------------------
