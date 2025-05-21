@@ -32,7 +32,7 @@ def save_data():
 
 # -- Fonction pour charger les données depuis un fichier JSON
 def load_data():
-    global task_lists_data, tasks_data, level, current_xp, coins
+    global task_lists_data, tasks_data, level, current_xp, coins, xp_max
     try:
         # Charger les données depuis user_data.json
         if os.path.exists("user_data.json"):
@@ -45,7 +45,7 @@ def load_data():
                 level = profile_data.get("level", 1)
                 current_xp = profile_data.get("xp", 0)
                 coins = profile_data.get("coins", 0)
-                xp_max = int(round(100 * (1.1 ** (level - 1))))  # Recalculer xp_max basé sur le niveau
+                xp_max = int(round(100 * (1.05 ** (level - 1))))  # Recalculer xp_max basé sur le niveau
             print("Données chargées avec succès")
         else:
             # Données par défaut si le fichier n'existe pas
@@ -214,23 +214,12 @@ def update_tasks_display():
             row_index = display_task(task, row_index)
 
 # === BARRE D'XP - AJOUT ICI ===
-current_xp = 0
-xp_per_task = 20
 xp_max = 100
-level = 1
-coins = 0  # Ajout du système de coins
-
-# -- BARRE D'XP EN BAS DE LA FENÊTRE PRINCIPALE --
-xp_bar_frame = None  # Frame pour la barre d'XP
+xp_per_task = 10
 
 def show_xp_bar():
     global xp_label, xp_progress, xp_bar_frame
-    # Détruit l'ancienne frame si elle existe
-    try:
-        if xp_bar_frame is not None:
-            xp_bar_frame.destroy()
-    except Exception:
-        pass
+
     # Crée la nouvelle frame en bas du main_frame
     xp_bar_frame = ctk.CTkFrame(main_frame)
     xp_bar_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
@@ -254,7 +243,7 @@ def level_up():
     global level, xp_max, coins
     level += 1
     xp_max = int(round(xp_max * 1.1))
-    coins += 15  # Ajout de 15 coins à chaque level up
+    coins += 10  # Ajout de 15 coins à chaque level up
     try:
         ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !", icon="info")
     except Exception:
@@ -514,6 +503,28 @@ def show_add_task_popup():
 coins = 0  # Ajout du système de coins
 
 def show_shop():
+    # Charger les items de la boutique depuis le fichier JSON
+    try:
+        with open("user_data.json", "r", encoding="utf-8") as file:
+            data = json.load(file)
+            shop_items = data["users"]["default"]["shop_items"]
+    except Exception:
+        # Items par défaut en cas d'erreur
+        shop_items = [
+            {
+                "name": "Temps de Média",
+                "price": 100,
+                "description": "30 minutes de temps libre pour regarder des vidéos ou utiliser les réseaux sociaux",
+                "icon": "📱"
+            },
+            {
+                "name": "Temps de Repos",
+                "price": 50,
+                "description": "15 minutes de pause bien méritée",
+                "icon": "😴"
+            }
+        ]
+
     # Créer une nouvelle fenêtre pour la boutique
     shop_window = ctk.CTkToplevel()
     shop_window.title("Boutique de Récompenses")
@@ -535,40 +546,6 @@ def show_shop():
     # Frame pour les articles
     items_frame = ctk.CTkFrame(shop_window)
     items_frame.pack(fill="both", expand=True, padx=20, pady=10)
-    
-    # Liste des articles disponibles
-    shop_items = [
-        {
-            "name": "Temps de Média",
-            "price": 100,
-            "description": "30 minutes de temps libre pour regarder des vidéos ou utiliser les réseaux sociaux",
-            "icon": "📱"
-        },
-        {
-            "name": "Temps de Repos",
-            "price": 50,
-            "description": "15 minutes de pause bien méritée",
-            "icon": "😴"
-        },
-        {
-            "name": "Gouter",
-            "price": 70,
-            "description": "Un petit plaisir sucré pour se récompenser",
-            "icon": "🍪"
-        },
-        {
-            "name": "Jeux Vidéo",
-            "price": 80,
-            "description": "20 minutes de jeu vidéo",
-            "icon": "🎮"
-        },
-        {
-            "name": "Sortie en Soirée",
-            "price": 400,
-            "description": "Une sortie entre amis le soir",
-            "icon": "🌙"
-        }
-    ]
     
     # Créer les articles dans la boutique
     for item in shop_items:
@@ -600,6 +577,7 @@ def show_shop():
                     coins -= item_price
                     coins_label.configure(text=f"🪙 {coins} coins")
                     show_xp_bar()  # Mettre à jour l'affichage des coins
+                    save_data()  # Sauvegarder les données après l'achat
                     ctk.CTkMessagebox(
                         title="Achat réussi!", 
                         message=f"Vous avez acheté {item_icon} {item_name}!\nProfitez bien de votre récompense !", 
@@ -709,7 +687,12 @@ root = ctk.CTk()
 root.title("Liste de Tâches")
 root.geometry("900x600")
 root.minsize(900, 450)
-root.iconbitmap("assets/favicon.ico")
+
+# Ajouter l'icône de l'application
+try:
+    root.iconbitmap("assets/favicon.ico")
+except Exception:
+    pass
 
 # -- Configuration de la grille principale
 root.grid_columnconfigure(0, weight=1)

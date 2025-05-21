@@ -4,10 +4,42 @@
             "profile": {
                 "username": "Présentation NSI",
                 "profile_picture": "assets/default_profile.png",
-                "level": 2,
+                "level": 1,
                 "xp": 0,
-                "coins": 15
+                "coins": 0
             },
+            "shop_items": [
+                {
+                    "name": "Badge productif",
+                    "price": 200,
+                    "description": "20 minutes de jeu vidéo",
+                    "icon": "🎮"
+                },
+                {
+                    "name": "Badge discipliné",
+                    "price": 400,
+                    "description": "20 minutes de jeu vidéo",
+                    "icon": "🎮"
+                },
+                {
+                    "name": "Carte cadeau Amazon 5€",
+                    "price": 2000,
+                    "description": "30 minutes de temps libre pour regarder des vidéos ou utiliser les réseaux sociaux",
+                    "icon": "📱"
+                },
+                {
+                    "name": "Carte cadeau Amazon 10€",
+                    "price": 3500,
+                    "description": "15 minutes de pause bien méritée",
+                    "icon": "😴"
+                },
+                {
+                    "name": "Carte crédit Uber Eats 10€",
+                    "price": 3500,
+                    "description": "Un petit plaisir sucré pour se récompenser",
+                    "icon": "🍪"
+                }
+            ],
             "lists": [
                 "📥 Toutes",
                 "📅 Aujourd'hui",
@@ -31,14 +63,20 @@
                 "🛒 Courses": [
                     {
                         "title": "Acheter 1 boite de jambon",
-                        "date": "2025-05-22",
-                        "time": "09:00",
+                        "date": "2025-05-25",
+                        "time": "12:00",
                         "checked": false
                     },
                     {
                         "title": "Acheter 3 boites de lardons",
                         "date": "2025-05-25",
-                        "time": "09:00",
+                        "time": "12:00",
+                        "checked": false
+                    },
+                    {
+                        "title": "Acheter un paquet de spaghetti",
+                        "date": "2025-05-25",
+                        "time": "12:00",
                         "checked": false
                     }
                 ],
@@ -47,6 +85,14 @@
                         "title": "Voyager en Thaïlande",
                         "date": "2025-06-02",
                         "time": "12:00",
+                        "checked": false
+                    }
+                ],
+                "📚 Tâches École": [
+                    {
+                        "title": "Présenter projet NSI",
+                        "date": "2025-05-23",
+                        "time": "11:00",
                         "checked": false
                     }
                 ]
