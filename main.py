@@ -155,6 +155,47 @@ def update_tasks_display():
                 # Afficher les tâches de cette liste
                 for task in tasks_list:
                     row_index = display_task(task, row_index)
+    # Si "Aujourd'hui" est sélectionné, afficher uniquement les tâches d'aujourd'hui
+    elif selected_list == "📅 Aujourd'hui":
+        today = datetime.now().date()
+        today_str = today.strftime("%Y-%m-%d")
+        
+        # Parcourir toutes les listes pour trouver les tâches d'aujourd'hui
+        for list_name, tasks_list in tasks_data.items():
+            today_tasks = [task for task in tasks_list if task["date"] == today_str]
+            if today_tasks:  # Ne pas afficher les listes vides
+                # Titre du groupe
+                group_label = ctk.CTkLabel(tasks_frame, text=list_name, font=("Arial", 14, "bold"))
+                group_label.grid(row=row_index, column=0, sticky="w", pady=(10, 5))
+                row_index += 1
+                
+                # Afficher les tâches d'aujourd'hui de cette liste
+                for task in today_tasks:
+                    row_index = display_task(task, row_index)
+    # Si "7 Prochains Jours" est sélectionné
+    elif selected_list == "📆 7 Prochains Jours":
+        today = datetime.now().date()
+        # Calculer la date de fin (7 jours après aujourd'hui)
+        end_date = today + datetime.timedelta(days=7)
+        
+        # Parcourir toutes les listes pour trouver les tâches des 7 prochains jours
+        for list_name, tasks_list in tasks_data.items():
+            # Filtrer les tâches qui sont dans la période
+            next_week_tasks = []
+            for task in tasks_list:
+                task_date = datetime.strptime(task["date"], "%Y-%m-%d").date()
+                if today <= task_date <= end_date:
+                    next_week_tasks.append(task)
+            
+            if next_week_tasks:  # Ne pas afficher les listes vides
+                # Titre du groupe
+                group_label = ctk.CTkLabel(tasks_frame, text=list_name, font=("Arial", 14, "bold"))
+                group_label.grid(row=row_index, column=0, sticky="w", pady=(10, 5))
+                row_index += 1
+                
+                # Afficher les tâches de la semaine de cette liste
+                for task in next_week_tasks:
+                    row_index = display_task(task, row_index)
     else:
         # Afficher uniquement les tâches de la liste sélectionnée
         tasks_list = tasks_data.get(selected_list, [])
@@ -323,8 +364,12 @@ def show_add_task_popup():
     list_label = ctk.CTkLabel(popup, text="Liste")
     list_label.pack(anchor="w", padx=50)
     
-    list_var = ctk.StringVar(value=task_lists_data[0])  # Valeur par défaut
-    list_dropdown = ctk.CTkOptionMenu(popup, values=task_lists_data, variable=list_var, width=300)
+    # Filtrer les listes spéciales
+    available_lists = [list_name for list_name in task_lists_data 
+                      if list_name not in ["📥 Toutes", "📅 Aujourd'hui", "📆 7 Prochains Jours"]]
+    
+    list_var = ctk.StringVar(value=available_lists[0] if available_lists else "")  # Valeur par défaut
+    list_dropdown = ctk.CTkOptionMenu(popup, values=available_lists, variable=list_var, width=300)
     list_dropdown.pack(pady=(0,10))
     
     # Frame pour la date
@@ -524,7 +569,7 @@ tasks_data = {}
 # Charger les données après la création de tous les widgets
 load_data()
 
-# Afficher la barre d’XP dès le départ
+# Afficher la barre d'XP dès le départ
 show_xp_bar()
 
 # Lier l'événement de clic à la fonction globale
