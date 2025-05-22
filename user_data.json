@@ -13,31 +13,31 @@
                     "name": "Badge productif",
                     "price": 200,
                     "description": "20 minutes de jeu vidéo",
-                    "icon": "🎮"
+                    "icon": "💼"
                 },
                 {
                     "name": "Badge discipliné",
                     "price": 400,
                     "description": "20 minutes de jeu vidéo",
-                    "icon": "🎮"
+                    "icon": "👨‍⚖️"
                 },
                 {
                     "name": "Carte cadeau Amazon 5€",
                     "price": 2000,
                     "description": "30 minutes de temps libre pour regarder des vidéos ou utiliser les réseaux sociaux",
-                    "icon": "📱"
+                    "icon": "💳"
                 },
                 {
                     "name": "Carte cadeau Amazon 10€",
                     "price": 3500,
                     "description": "15 minutes de pause bien méritée",
-                    "icon": "😴"
+                    "icon": "💳"
                 },
                 {
                     "name": "Carte crédit Uber Eats 10€",
                     "price": 3500,
                     "description": "Un petit plaisir sucré pour se récompenser",
-                    "icon": "🍪"
+                    "icon": ""
                 }
             ],
             "lists": [
