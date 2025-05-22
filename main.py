@@ -10,15 +10,13 @@ from PIL import Image
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-def save_data():
+# -- Fonction pour sauvegarder les données dans un fichier JSON
+def sauvegarder_donnees():
     try:
         with open("user_data.json", "r+", encoding="utf-8") as file:
             data = json.load(file)
-            data["users"]["default"]["tasks"] = tasks_data
-            data["users"]["default"]["lists"] = task_lists_data
-            data["users"]["default"]["profile"]["level"] = level
-            data["users"]["default"]["profile"]["xp"] = current_xp
-            data["users"]["default"]["profile"]["coins"] = coins
+            data["users"]["default"]["tasks"] = donnees_taches
+            data["users"]["default"]["lists"] = donnees_listes_taches
             file.seek(0)
             json.dump(data, file, ensure_ascii=False, indent=4)
             file.truncate()
@@ -26,23 +24,21 @@ def save_data():
     except Exception as e:
         print(f"Erreur lors de la sauvegarde: {e}")
 
-def load_data():
-    global task_lists_data, tasks_data, level, current_xp, coins, xp_max
+# -- Fonction pour charger les données depuis un fichier JSON
+def charger_donnees():
+    global donnees_listes_taches, donnees_taches
     try:
         if os.path.exists("user_data.json"):
             with open("user_data.json", "r", encoding="utf-8") as file:
                 data = json.load(file)
-                tasks_data = data["users"]["default"]["tasks"]
-                task_lists_data = data["users"]["default"]["lists"]
-                profile_data = data["users"]["default"]["profile"]
-                level = profile_data.get("level", 1)
-                current_xp = profile_data.get("xp", 0)
-                coins = profile_data.get("coins", 0)
-                xp_max = int(round(100 * (1.05 ** (level - 1))))
+                donnees_taches = data["users"]["default"]["tasks"]
+                donnees_listes_taches = data["users"]["default"]["lists"]
             print("Données chargées avec succès")
         else:
-            tasks_data = {}
-            task_lists_data = [
+            # Données par défaut si le fichier n'existe pas
+            donnees_taches = {}
+            # Liste par défaut si aucune sauvegarde n'existe
+            donnees_listes_taches = [
                 "📥 Toutes",
                 "📅 Aujourd'hui",
                 "📆 7 Prochains Jours",
@@ -57,40 +53,51 @@ def load_data():
             current_xp = 0
             coins = 0
         
-        update_tasks_display()
-        update_lists_display()
+        mettre_a_jour_affichage_taches()
+        mettre_a_jour_listes()
     except Exception as e:
         print(f"Erreur lors du chargement: {e}")
-        tasks_data = {}
-        task_lists_data = [                
+        donnees_taches = {}
+        donnees_listes_taches = [                
             "📥 Toutes",
             "📅 Aujourd'hui",
             "📆 7 Prochains Jours",
         ]
-        level = 1
-        current_xp = 0
-        coins = 0
-            
-selected_list = "📥 Toutes"
 
-def update_lists_display():
-    global selected_list
+# -- Fonction globale pour gérer la perte de focus des inputs
+def gerer_perte_focus(event):
+    # Récupérer le widget qui a actuellement le focus
+    focused_widget = root.focus_get()
+    
+    # Vérifier si on a cliqué sur un widget valide
+    if not isinstance(event.widget, str):
+        # Si on clique ailleurs que sur un input, on retire le focus
+        if isinstance(focused_widget, ctk.CTkEntry) and event.widget != focused_widget:
+            focused_widget.master.focus()  # Donner le focus au parent du widget
+            
+# Ajouter la variable globale pour la liste sélectionnée
+liste_selectionnee = "📥 Toutes"
+
+def mettre_a_jour_listes():
+    global liste_selectionnee
+    # Supprimer les anciens boutons de liste
     for widget in sideview_frame.winfo_children():
         if isinstance(widget, ctk.CTkButton) and widget not in [add_list_btn]:
             widget.destroy()
     
-    default_lists = task_lists_data[:3]
-    custom_lists = task_lists_data[3:]
+    # Listes par défaut (3 premières listes)
+    default_lists = donnees_listes_taches[:3]
+    custom_lists = donnees_listes_taches[3:]
     
     for index, list_name in enumerate(default_lists):
-        is_selected = (list_name == selected_list)
+        is_selected = (list_name == liste_selectionnee)
         list_btn = ctk.CTkButton(
             sideview_frame, 
             text=list_name, 
             fg_color="#1F6AA5" if is_selected else "transparent",
             hover_color="#1F6AA5",
             anchor="w",
-            command=lambda name=list_name: select_list(name)
+            command=lambda name=list_name: selectionner_liste(name)
         )
         list_btn.grid(row=index, column=0, padx=10, pady=5, sticky="ew")
     
@@ -105,50 +112,56 @@ def update_lists_display():
     mes_listes_label = ctk.CTkLabel(separator_frame, text="Mes listes", font=("", 14, "bold"))
     mes_listes_label.grid(row=0, column=0, sticky="w", padx=10)
     
-    add_btn = ctk.CTkButton(separator_frame, text="+", width=20, height=20, command=show_add_list_popup)
+    # Bouton + pour ajouter une nouvelle liste
+    add_btn = ctk.CTkButton(separator_frame, text="+", width=20, height=20, command=afficher_popup_ajout_liste)
     add_btn.grid(row=0, column=2, sticky="ew", padx=10)
     
     current_row += 1
     
     for index, list_name in enumerate(custom_lists):
-        is_selected = (list_name == selected_list)
+        is_selected = (list_name == liste_selectionnee)
         list_btn = ctk.CTkButton(
             sideview_frame,
             text=list_name,
             fg_color="#1F6AA5" if is_selected else "transparent",
             hover_color="#1F6AA5",
             anchor="w",
-            command=lambda name=list_name: select_list(name)
+            command=lambda name=list_name: selectionner_liste(name)
         )
         list_btn.grid(row=current_row + index, column=0, padx=10, pady=5, sticky="ew")
 
-def select_list(list_name):
-    global selected_list, title_label
-    selected_list = list_name
-    update_lists_display()
-    title_label.configure(text=list_name)
-    update_tasks_display()
+def selectionner_liste(list_name):
+    global liste_selectionnee, etiquette_titre
+    liste_selectionnee = list_name
+    mettre_a_jour_listes()  # Mettre à jour l'affichage des listes pour refléter la sélection
+    etiquette_titre.configure(text=list_name)  # Mettre à jour le titre
+    mettre_a_jour_taches()  # Mettre à jour l'affichage des tâches
 
-def update_tasks_display():
+def mettre_a_jour_taches():
+    # Mettre à jour l'affichage
     for widget in tasks_frame.winfo_children():
         widget.destroy()
         
     row_index = 0
     
-    if selected_list == "📥 Toutes":
-        for list_name, tasks_list in tasks_data.items():
-            if tasks_list:
+    # Si "Toutes" est sélectionné, afficher toutes les tâches
+    if liste_selectionnee == "📥 Toutes":
+        for list_name, tasks_list in donnees_taches.items():
+            if tasks_list:  # Ne pas afficher les listes vides
+                # Titre du groupe
                 group_label = ctk.CTkLabel(tasks_frame, text=list_name, font=("Arial", 14, "bold"))
                 group_label.grid(row=row_index, column=0, sticky="w", pady=(10, 5))
                 row_index += 1
                 
                 for task in tasks_list:
-                    row_index = display_task(task, row_index)
-    elif selected_list == "📅 Aujourd'hui":
+                    row_index = afficher_tache(task, row_index)
+    # Si "Aujourd'hui" est sélectionné, afficher uniquement les tâches d'aujourd'hui
+    elif liste_selectionnee == "📅 Aujourd'hui":
         today = datetime.now().date()
         today_str = today.strftime("%Y-%m-%d")
         
-        for list_name, tasks_list in tasks_data.items():
+        # Parcourir toutes les listes pour trouver les tâches d'aujourd'hui
+        for list_name, tasks_list in donnees_taches.items():
             today_tasks = [task for task in tasks_list if task["date"] == today_str]
             if today_tasks:
                 group_label = ctk.CTkLabel(tasks_frame, text=list_name, font=("Arial", 14, "bold"))
@@ -156,12 +169,15 @@ def update_tasks_display():
                 row_index += 1
                 
                 for task in today_tasks:
-                    row_index = display_task(task, row_index)
-    elif selected_list == "📆 7 Prochains Jours":
+                    row_index = afficher_tache(task, row_index)
+    # Si "7 Prochains Jours" est sélectionné
+    elif liste_selectionnee == "📆 7 Prochains Jours":
         today = datetime.now().date()
         end_date = today + timedelta(days=7)
         
-        for list_name, tasks_list in tasks_data.items():
+        # Parcourir toutes les listes pour trouver les tâches des 7 prochains jours
+        for list_name, tasks_list in donnees_taches.items():
+            # Filtrer les tâches qui sont dans la période
             next_week_tasks = []
             for task in tasks_list:
                 task_date = datetime.strptime(task["date"], "%Y-%m-%d").date()
@@ -174,63 +190,82 @@ def update_tasks_display():
                 row_index += 1
                 
                 for task in next_week_tasks:
-                    row_index = display_task(task, row_index)
+                    row_index = afficher_tache(task, row_index)
     else:
-        tasks_list = tasks_data.get(selected_list, [])
+        # Afficher uniquement les tâches de la liste sélectionnée
+        tasks_list = donnees_taches.get(liste_selectionnee, [])
         for task in tasks_list:
-            row_index = display_task(task, row_index)
+            row_index = afficher_tache(task, row_index)
 
-xp_max = 100
-xp_per_task = 10
+# === BARRE D'XP - AJOUT ICI ===
+experience_courante = 0
+experience_par_tache = 20
+experience_maximale = 100
+niveau = 1
+pieces = 0  # Ajout du système de pièces
 
-def show_xp_bar():
-    global xp_label, xp_progress, xp_bar_frame
+# -- BARRE D'XP EN BAS DE LA FENÊTRE PRINCIPALE --
+cadre_barre_experience = None  # Frame pour la barre d'XP
 
-    xp_bar_frame = ctk.CTkFrame(main_frame)
-    xp_bar_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
-    xp_label = ctk.CTkLabel(xp_bar_frame, text=f"Niveau {level} | {coins} 🪙 | XP : {current_xp}/{xp_max}")
-    xp_label.pack(side="left", padx=10)
-    xp_progress = ctk.CTkProgressBar(xp_bar_frame, width=250)
-    xp_progress.set(current_xp / xp_max)
-    xp_progress.pack(side="left", padx=10, pady=8)
-
-def gain_xp_for_task():
-    global current_xp, xp_max, level
-    current_xp += xp_per_task
-    if current_xp >= xp_max:
-        current_xp -= xp_max
-        level_up()
-    show_xp_bar()
-
-def level_up():
-    global level, xp_max, coins
-    level += 1
-    xp_max = int(round(xp_max * 1.1))
-    coins += 10
+def afficher_barre_experience():
+    global etiquette_experience, barre_experience, cadre_barre_experience
+    # Détruit l'ancienne frame si elle existe
     try:
-        ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !", icon="info")
+        if cadre_barre_experience is not None:
+            cadre_barre_experience.destroy()
     except Exception:
-        tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {level} 🎉\nTu gagnes 15 🪙 coins !")
-    show_xp_bar()
+        pass
+    # Crée la nouvelle frame en bas du cadre_principal
+    cadre_barre_experience = ctk.CTkFrame(cadre_principal)
+    cadre_barre_experience.grid(row=3, column=0, sticky="ew", padx=10, pady=(0, 10))
+    # Label XP
+    etiquette_experience = ctk.CTkLabel(cadre_barre_experience, text=f"Niveau {niveau} | {pieces} 🪙 | Expérience : {experience_courante}/{experience_maximale}")
+    etiquette_experience.pack(side="left", padx=10)
+    # Barre de progression XP
+    barre_experience = ctk.CTkProgressBar(cadre_barre_experience, width=250)
+    barre_experience.set(experience_courante / experience_maximale)
+    barre_experience.pack(side="left", padx=10, pady=8)
 
-def lose_xp_for_task():
-    global current_xp, xp_max, level, coins
-    current_xp -= xp_per_task
-    if current_xp < 0:
-        if level > 1:
-            level -= 1
-            xp_max = int(round(xp_max / 1.1))
-            current_xp = xp_max + current_xp
-            coins = max(0, coins - 15)
+def gagner_experience_pour_tache():
+    global experience_courante, experience_maximale, niveau
+    experience_courante += experience_par_tache
+    if experience_courante >= experience_maximale:
+        experience_courante -= experience_maximale
+        monter_niveau()
+    afficher_barre_experience()
+
+def monter_niveau():
+    global niveau, experience_maximale, pieces
+    niveau += 1
+    experience_maximale = int(round(experience_maximale * 1.1))
+    pieces += 15  # Ajout de 15 pièces à chaque level up
+    try:
+        ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {niveau} 🎉\nTu gagnes 15 🪙 pièces !", icon="info")
+    except Exception:
+        import tkinter.messagebox as tkmb
+        tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {niveau} 🎉\nTu gagnes 15 🪙 pièces !")
+    afficher_barre_experience()
+
+def perdre_experience_pour_tache():
+    global experience_courante, experience_maximale, niveau, pieces
+    experience_courante -= experience_par_tache
+    if experience_courante < 0:
+        if niveau > 1:
+            niveau -= 1
+            experience_maximale = int(round(experience_maximale / 1.1))
+            experience_courante = experience_maximale + experience_courante  # experience_courante est négatif
+            pieces = max(0, pieces - 15)  # On retire 15 pièces, sans descendre sous 0
             try:
-                ctk.CTkMessagebox(title="Perte de niveau", message=f"Tu redescends au niveau {level}...\nTu perds 15 🪙 coins.", icon="warning")
+                ctk.CTkMessagebox(title="Perte de niveau", message=f"Tu redescends au niveau {niveau}...\nTu perds 15 🪙 pièces.", icon="warning")
             except Exception:
-                tkmb.showwarning("Perte de niveau", f"Tu redescends au niveau {level}...\nTu perds 15 🪙 coins.")
+                import tkinter.messagebox as tkmb
+                tkmb.showwarning("Perte de niveau", f"Tu redescends au niveau {niveau}...\nTu perds 15 🪙 pièces.")
         else:
-            current_xp = 0
-    show_xp_bar()
+            experience_courante = 0
+    afficher_barre_experience()
 
-def display_task(task, row_index):
+def afficher_tache(task, row_index):
+    import tkinter as tk
     task_row_frame = ctk.CTkFrame(tasks_frame)
     task_row_frame.grid(row=row_index, column=0, sticky="ew", pady=2)
     task_row_frame.grid_columnconfigure(0, weight=1)
@@ -251,14 +286,10 @@ def display_task(task, row_index):
     def on_task_checked():
         if checked_var.get():
             task_label.configure(font=("", 0, "overstrike"), text_color=("#888888"))
-            gain_xp_for_task()
+            gagner_experience_pour_tache()
         else:
             task_label.configure(font=("", 0, "normal"), text_color=("#FFFFFF"))
-            lose_xp_for_task()
-        
-        task["checked"] = checked_var.get()
-        save_data()
-
+            perdre_experience_pour_tache()
     checkbox.configure(command=on_task_checked)
 
     today = datetime.now().date()
@@ -291,13 +322,14 @@ def display_task(task, row_index):
 
     return row_index + 1
 
-def add_new_list(list_name):
-    if list_name and list_name not in task_lists_data:
-        task_lists_data.append(list_name)
-        update_lists_display()
-        save_data()
+def ajouter_nouvelle_liste(list_name):
+    if list_name and list_name not in donnees_listes_taches:
+        donnees_listes_taches.append(list_name)
+        mettre_a_jour_listes()
+        sauvegarder_donnees()  # Sauvegarder après l'ajout
             
-def show_add_list_popup():
+def afficher_popup_ajout_liste():
+    # Créer une nouvelle fenêtre popup
     popup = ctk.CTkToplevel()
     popup.title("Nouvelle Liste")
     popup.geometry("300x200")
@@ -312,10 +344,10 @@ def show_add_list_popup():
     
     def create_list():
         list_name = list_entry.get()
-        if list_name and list_name not in task_lists_data:
-            task_lists_data.append(list_name)
-            update_lists_display()
-            save_data()
+        if list_name and list_name not in donnees_listes_taches:
+            donnees_listes_taches.append(list_name)
+            mettre_a_jour_listes()
+            sauvegarder_donnees()  # Sauvegarder après l'ajout
             popup.destroy()
     
     buttons_frame = ctk.CTkFrame(popup, fg_color="transparent")
@@ -327,7 +359,8 @@ def show_add_list_popup():
     create_btn = ctk.CTkButton(buttons_frame, text="Créer", command=create_list)
     create_btn.pack(side="left", padx=10)
     
-def show_add_task_popup():
+def afficher_popup_ajout_tache():
+    # Créer une nouvelle fenêtre popup
     popup = ctk.CTkToplevel()
     popup.title("Nouvelle Tâche")
     popup.geometry("400x350")
@@ -343,7 +376,8 @@ def show_add_task_popup():
     list_label = ctk.CTkLabel(popup, text="Liste")
     list_label.pack(anchor="w", padx=50)
     
-    available_lists = [list_name for list_name in task_lists_data 
+    # Filtrer les listes spéciales
+    available_lists = [list_name for list_name in donnees_listes_taches 
                       if list_name not in ["📥 Toutes", "📅 Aujourd'hui", "📆 7 Prochains Jours"]]
     
     list_var = ctk.StringVar(value=available_lists[0] if available_lists else "")
@@ -408,12 +442,16 @@ def show_add_task_popup():
                 "checked": False
             }
                 
-            if selected_list not in tasks_data:
-                tasks_data[selected_list] = []
-            tasks_data[selected_list].append(new_task)
+            # Ajouter la tâche à la liste sélectionnée
+            if selected_list not in donnees_taches:
+                donnees_taches[selected_list] = []
+            donnees_taches[selected_list].append(new_task)
                 
-            update_tasks_display()
-            save_data()
+            mettre_a_jour_taches()
+            
+            # Sauvegarder les données après l'ajout d'une tâche
+            sauvegarder_donnees()
+            
             popup.destroy()
     
     buttons_frame = ctk.CTkFrame(popup, fg_color="transparent")
@@ -623,37 +661,53 @@ sideview_frame.grid_rowconfigure(99, weight=1)
 lbl_lists_title = ctk.CTkLabel(sideview_frame, text="Listes", font=("Arial", 14, "bold"))
 lbl_lists_title.grid(row=0, column=0, padx=10, pady=(5, 5), sticky="w")
 
-add_list_btn = ctk.CTkButton(sideview_frame, text="+ Nouvelle Liste", command=show_add_list_popup,
+# Bouton pour ajouter une nouvelle liste
+add_list_btn = ctk.CTkButton(sideview_frame, text="+ Nouvelle Liste", command=afficher_popup_ajout_liste,
                             fg_color="transparent", anchor="w")
 add_list_btn.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
-task_lists_data = []
+# Initialisation de donnees_listes_taches
+donnees_listes_taches = []
 
-main_frame = ctk.CTkFrame(container)
-main_frame.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
-main_frame.grid_columnconfigure(0, weight=1)
-main_frame.grid_rowconfigure(2, weight=1)
+# ------------------------------------------------------------------------------
+# 3) MAIN VIEW (Colonne 2)
+# ------------------------------------------------------------------------------
+cadre_principal = ctk.CTkFrame(container)
+cadre_principal.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
+cadre_principal.grid_columnconfigure(0, weight=1)
+cadre_principal.grid_rowconfigure(2, weight=1)  # la liste des tâches doit s'étendre
 
-top_bar_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-top_bar_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
-top_bar_frame.grid_columnconfigure(0, weight=1)
-top_bar_frame.grid_columnconfigure(1, weight=0)
+# -- Barre supérieure (titre + icône tri/filtre + etc.)
+cadre_superieur = ctk.CTkFrame(cadre_principal, fg_color="transparent")
+cadre_superieur.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 0))
+cadre_superieur.grid_columnconfigure(0, weight=1)
+cadre_superieur.grid_columnconfigure(1, weight=0)
 
-title_label = ctk.CTkLabel(top_bar_frame, text=selected_list, font=("Arial", 18, "bold"), fg_color="transparent")
-title_label.grid(row=0, column=0, sticky="w")
+# Titre
+etiquette_titre = ctk.CTkLabel(cadre_superieur, text=liste_selectionnee, font=("Arial", 18, "bold"), fg_color="transparent")
+etiquette_titre.grid(row=0, column=0, sticky="w")
 
-add_task_btn = ctk.CTkButton(main_frame, text="+ Ajouter une tâche", height=35, command=show_add_task_popup)
-add_task_btn.grid(row=1, column=0, sticky="ew", padx=10, pady=20)
+# -- Bouton "Ajouter une tâche"
+bouton_ajouter_tache = ctk.CTkButton(cadre_principal, text="+ Ajouter une tâche", height=35, command=afficher_popup_ajout_tache)
+bouton_ajouter_tache.grid(row=1, column=0, sticky="ew", padx=10, pady=20)
 
-tasks_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-tasks_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
-tasks_frame.grid_columnconfigure(0, weight=1)
+# -- Cadre pour la liste des tâches
+cadre_taches = ctk.CTkFrame(cadre_principal, fg_color="transparent")
+cadre_taches.grid(row=2, column=0, sticky="nsew", padx=10, pady=(0, 10))
+cadre_taches.grid_columnconfigure(0, weight=1)
 
-tasks_data = {}
+# Initialisation des donnees_taches
+donnees_taches = {}
 
-load_data()
+# Charger les données après la création de tous les widgets
+charger_donnees()
 
-show_xp_bar()
+# Afficher la barre d'expérience dès le départ
+afficher_barre_experience()
 
-root.protocol("WM_DELETE_WINDOW", lambda: (save_data(), root.destroy()))
+# Lier l'événement de clic à la fonction globale
+root.bind_all("<Button-1>", gerer_perte_focus)
+
+# -- Lancement de la boucle principale
+root.protocol("WM_DELETE_WINDOW", lambda: (sauvegarder_donnees(), root.destroy()))
 root.mainloop()
