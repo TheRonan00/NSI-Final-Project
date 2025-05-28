@@ -6,38 +6,38 @@
                 "profile_picture": "assets/default_profile.png",
                 "level": 1,
                 "xp": 0,
-                "coins": 0
+                "coins": 3400
             },
             "shop_items": [
                 {
                     "name": "Badge productif",
                     "price": 200,
-                    "description": "20 minutes de jeu vidéo",
+                    "description": "Débloque un badge à afficher sur ton profile !",
                     "icon": "💼"
                 },
                 {
                     "name": "Badge discipliné",
                     "price": 400,
-                    "description": "20 minutes de jeu vidéo",
+                    "description": "Débloque un badge à afficher sur ton profile !",
                     "icon": "👨‍⚖️"
                 },
                 {
                     "name": "Carte cadeau Amazon 5€",
                     "price": 2000,
-                    "description": "30 minutes de temps libre pour regarder des vidéos ou utiliser les réseaux sociaux",
+                    "description": "5€ offert à dépenser sur Amazon !",
                     "icon": "💳"
                 },
                 {
                     "name": "Carte cadeau Amazon 10€",
                     "price": 3500,
-                    "description": "15 minutes de pause bien méritée",
+                    "description": "10€ offert à dépenser sur Amazon !",
                     "icon": "💳"
                 },
                 {
                     "name": "Carte crédit Uber Eats 10€",
                     "price": 3500,
-                    "description": "Un petit plaisir sucré pour se récompenser",
-                    "icon": ""
+                    "description": "10€ pour se commander un bon repas !",
+                    "icon": "💳"
                 }
             ],
             "lists": [

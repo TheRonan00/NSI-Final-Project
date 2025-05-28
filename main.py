@@ -207,10 +207,7 @@ def monter_niveau():
     niveau += 1
     experience_maximale = int(round(experience_maximale * 1.1))
     pieces += 10
-    try:
-        ctk.CTkMessagebox(title="Félicitations !", message=f"Bravo ! Tu passes au niveau {niveau} 🎉\nTu gagnes 15 🪙 pièces !", icon="info")
-    except Exception:
-        tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {niveau} 🎉\nTu gagnes 15 🪙 pièces !")
+    tkmb.showinfo("Félicitations !", f"Bravo ! Tu passes au niveau {niveau} 🎉\nTu gagnes 15 🪙 pièces !")
     afficher_barre_xp()
 
 def perdre_experience_pour_tache():
@@ -222,10 +219,7 @@ def perdre_experience_pour_tache():
             experience_maximale = int(round(experience_maximale / 1.1))
             experience_actuelle = experience_maximale + experience_actuelle
             pieces = max(0, pieces - 15)
-            try:
-                ctk.CTkMessagebox(title="Perte de niveau", message=f"Tu redescends au niveau {niveau}...\nTu perds 15 🪙 pièces.", icon="warning")
-            except Exception:
-                tkmb.showwarning("Perte de niveau", f"Tu redescends au niveau {niveau}...\nTu perds 15 🪙 pièces.")
+            tkmb.showwarning("Perte de niveau", f"Tu redescends au niveau {niveau}...\nTu perds 15 🪙 pièces.")
         else:
             experience_actuelle = 0
     afficher_barre_xp()
@@ -431,16 +425,14 @@ def afficher_boutique():
                     etiquette_pieces_boutique.configure(text=f"🪙 {pieces} pièces")
                     afficher_barre_xp()
                     sauvegarder_donnees()
-                    ctk.CTkMessagebox(
-                        title="Achat réussi!",
-                        message=f"Vous avez acheté {icone_article} {nom_article}!\nProfitez bien de votre récompense !",
-                        icon="check"
+                    tkmb.showinfo(
+                        "Achat réussi!",
+                        f"Vous avez acheté {icone_article} {nom_article}!\nProfitez bien de votre récompense !"
                     )
                 else:
-                    ctk.CTkMessagebox(
-                        title="Erreur",
-                        message=f"Vous n'avez pas assez de pièces !\nIl vous manque {prix_article - pieces} pièces.",
-                        icon="cancel"
+                    tkmb.showwarning(
+                        "Erreur",
+                        f"Vous n'avez pas assez de pièces !\nIl vous manque {prix_article - pieces} pièces."
                     )
             return acheter_article
         bouton_acheter = ctk.CTkButton(
